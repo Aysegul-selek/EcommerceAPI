@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.DataBase
 {
-    internal class AppDbContext
+    public class AppDbContext
     {
     }
 }
