@@ -10,4 +10,12 @@
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dtos\Auth\" />
+    <Folder Include="Dtos\Orders\" />
+    <Folder Include="Interfaces\Services\" />
+    <Folder Include="Interfaces\Repositories\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>
