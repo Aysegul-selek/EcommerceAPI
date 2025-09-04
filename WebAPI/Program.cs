@@ -1,4 +1,8 @@
+using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
+using Application.Services;
 using Infrastructure.DataBase;
+using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +18,12 @@ builder.Services.AddSwaggerGen();
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+// Services
+builder.Services.AddScoped<IUserService, UserManager>();
+
 
 var app = builder.Build();
 

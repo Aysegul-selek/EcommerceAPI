@@ -10,8 +10,8 @@ namespace Domain.Entities
     {
         public long Id { get; set; }                
         public DateTime CreatedDate { get; set; } 
-        public DateTime? UpdatedDate { get; set; } 
-        public bool IsDeleted { get; set; }      
+        public DateTime? UpdatedDate { get; set; }
+        public bool IsDeleted { get; set; } = false;
         public string? CreateUser { get; set; }  
         public string? UpUser { get; set; }    
     }
