@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Dtos.Auth
+namespace Application.Dtos.AuthDto
 {
-    public class RegisterDto
+    public class RegisterRequestDto
     {
         [Required(ErrorMessage = "Email is required")]
         public string Email { get; set; }
@@ -15,5 +15,7 @@ namespace Application.Dtos.Auth
         public string Password { get; set; }
         [Required(ErrorMessage = "FirstName is required")]
         public string FirstName { get; set; }
+        [Required(ErrorMessage = "LastName is required")]
+        public string LastName { get; set; }
     }
 }

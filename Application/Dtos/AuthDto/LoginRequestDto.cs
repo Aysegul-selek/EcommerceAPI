@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Dtos.Auth
+namespace Application.Dtos.AuthDto
 {
-    public class LoginDto
+    public class LoginRequestDto
     {
         [Required(ErrorMessage = "Email is required")]
         public string Email { get; set; }
