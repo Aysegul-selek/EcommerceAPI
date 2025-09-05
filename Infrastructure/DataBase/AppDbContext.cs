@@ -5,7 +5,6 @@ namespace Infrastructure.DataBase
 {
     public class AppDbContext : DbContext
     {
-
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -18,5 +17,24 @@ namespace Infrastructure.DataBase
         public DbSet<Role> Roles { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
 
+        
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Order decimal precision
+            modelBuilder.Entity<Order>(builder =>
+            {
+                builder.Property(o => o.Total)
+                       .HasColumnType("decimal(18,2)");
+            });
+
+            // OrderItem decimal precision
+            modelBuilder.Entity<OrderItem>(builder =>
+            {
+                builder.Property(oi => oi.UnitPrice)
+                       .HasColumnType("decimal(18,2)");
+            });
+        }
     }
 }
