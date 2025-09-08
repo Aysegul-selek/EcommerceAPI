@@ -1,4 +1,5 @@
 ﻿using Application.Dtos.AuthDto;
+using Application.Dtos.ResponseDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Application.Interfaces.Services
 {
     public interface IAuthService
     {
-        Task<LoginResponse?> LoginAsync(LoginRequestDto request);
-        Task Register(RegisterRequestDto request);
+        Task<ApiResponseDto<LoginResponse?>> LoginAsync(LoginRequestDto request);
+        Task<ApiResponseDto<object>> Register(RegisterRequestDto request);
     }
 }

@@ -1,10 +1,12 @@
-﻿using Application.Dtos.UserDto;
+﻿
+using Application.Dtos.UserDto;
 using Application.Interfaces.Services;
-using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
 {
+    [Authorize]
     [Route("api/v1/user")]
     [ApiController]
     public class UserController : ControllerBase
@@ -14,35 +16,40 @@ namespace WebAPI.Controllers
         {
             _userService = userService;
         }
+
         [HttpPost("add")]
         public async Task<IActionResult> AddUser([FromBody] CreateUserDto user)
         {
-            await _userService.AddUser(user);
-            return Ok("kullanıcı başarılı bir şekilde eklendi");
+            var response = await _userService.AddUser(user);
+            return Ok(response);
         }
-        [HttpGet("getall")]
-        public async Task<IActionResult> GetAllUsers()
-        {
-            var users = await _userService.GetAllUsers();
-            return Ok(users);
-        }
-        [HttpGet("getbyid/{id}")]
-        public async Task<IActionResult> GetUserById([FromRoute] int id)
-        {
-            var user = await _userService.GetUserById(id);
-            return Ok(user);
-        }
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteUser([FromRoute] int id)
-        {
-            await _userService.DeleteUser(id);
-            return Ok("Kullanıcı başarılı bir şekilde silindi");
-        }
+
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto user, [FromRoute] int id)
         {
-            await _userService.UpdateUser(user,id);
-            return Ok("Kullanıcı başarılı bir şekilde güncellendi");
+            var response = await _userService.UpdateUser(user, id);
+            return Ok(response);
+        }
+
+        [HttpGet("getall")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var response = await _userService.GetAllUsers();
+            return Ok(response);
+        }
+
+        [HttpGet("getbyid/{id}")]
+        public async Task<IActionResult> GetUserById([FromRoute] int id)
+        {
+            var response = await _userService.GetUserById(id);
+            return Ok(response);
+        }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteUser([FromRoute] int id)
+        {
+            var response = await _userService.DeleteUser(id);
+            return Ok(response);
         }
     }
 }
