@@ -5,6 +5,9 @@ using Infrastructure.DataBase;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using Application.MappingProfiles;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +32,8 @@ builder.Services.AddScoped<IOrderService, OrderManager>();
 builder.Services.AddScoped<IAuthService, AuthManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 
 //jwt ayarlar?
@@ -61,5 +66,6 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 app.Run();
