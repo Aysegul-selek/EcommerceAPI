@@ -26,11 +26,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+
 // Services
 builder.Services.AddScoped<IUserService, UserManager>();
 builder.Services.AddScoped<IOrderService, OrderManager>();
 builder.Services.AddScoped<IAuthService, AuthManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
