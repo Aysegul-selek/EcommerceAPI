@@ -1,4 +1,5 @@
 ﻿using Application.Dtos.AuthDto;
+using Application.Dtos.ResponseDto;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
@@ -17,28 +18,48 @@ namespace Application.Services
             _jwtService = jwtService;
         }
 
-        public async Task<LoginResponse?> LoginAsync(LoginRequestDto request)
+        public async Task<ApiResponseDto<LoginResponse?>> LoginAsync(LoginRequestDto request)
         {
             var user = await _userRepository.GetByEmailAsync(request.Email);
             if (user == null || user.Password != request.Password)
             {
-                return null; // Kullanıcı bulunamadı veya şifre yanlış hata da dönebilir
+                return new ApiResponseDto<LoginResponse?>
+                {
+                    Data = null,
+                    Success = false,
+                    Message = "Geçersiz email veya şifre",
+                    ErrorCodes = ErrorCodes.NotFound
+                };
             }
             var token = _jwtService.GenerateToken(user);
 
-            return new LoginResponse
+            var loginResponse= new LoginResponse
             {
                 Token = token,
                 GecerlilikTarihi = DateTime.UtcNow.AddHours(1)
             };
+
+            return new ApiResponseDto<LoginResponse?>
+            {
+                Data = loginResponse,
+                Success = true,
+                Message = "Giriş başarılı",
+                ErrorCodes = null
+            };
         }
 
-        public async Task Register(RegisterRequestDto request)
+        public async Task<ApiResponseDto<object>> Register(RegisterRequestDto request)
         {
             var userDb = await _userRepository.GetByEmailAsync(request.Email);
             if (userDb != null)
             {
-                throw new Exception("Bu Email kullanılmaktadır"); // Hata fırlatabilir veya özel bir sonuç dönebilir
+               return new ApiResponseDto<object>
+               {
+                   Data = null,
+                   Success = false,
+                   Message = "Bu email zaten kayıtlı",
+                   ErrorCodes = ErrorCodes.Conflict
+               };
             }
             var newUser = new User
             {
@@ -49,6 +70,14 @@ namespace Application.Services
                 CreatedDate = DateTime.UtcNow
             };
             await _userRepository.AddAsync(newUser);
+            return new ApiResponseDto<object>
+            {
+                Data = null,
+                Success = true,
+                Message = "Kayıt başarılı",
+                ErrorCodes = null
+            };
+
 
         }
     }

@@ -1,3 +1,4 @@
+﻿using Application.Dtos.ResponseDto;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Services;
@@ -11,13 +12,14 @@ using Application.MappingProfiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// HttpContext accessor 
+builder.Services.AddHttpContextAccessor();
 
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -58,16 +60,42 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Global Exception Middleware
+app.UseMiddleware<WebAPI.Middleware.GlobalExceptionMiddleware>();
+
+// yetkisiz olma durumunu yakalama
+app.UseStatusCodePages(async context =>
+{
+    var response = context.HttpContext.Response;
+    if (response.StatusCode == 401 || response.StatusCode == 403)
+    {
+        response.ContentType = "application/json";
+
+        var result = new ApiResponseDto<object>
+        {
+            Success = false,
+            Message = response.StatusCode == 401
+                ? "Kullanıcı yetkili değil veya token geçersiz."
+                : "Erişim yetkiniz yok.",
+            Data = null,
+            ErrorCodes = ErrorCodes.Unauthorized
+        };
+
+        var json = System.Text.Json.JsonSerializer.Serialize(result);
+        await response.WriteAsync(json);
+    }
+});
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

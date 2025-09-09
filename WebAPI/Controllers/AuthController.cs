@@ -20,7 +20,7 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             var response = await _authService.LoginAsync(request);
-            if (response == null) return Unauthorized(new { message = "Yetkisiz giriş" });
+            if (!response.Success) return BadRequest(response);
 
             return Ok(response);
         }
@@ -28,15 +28,13 @@ namespace WebAPI.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            try
-            {
-                await _authService.Register(request);
-                return Ok(new { message = "Kayıt başarılı" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var response = await _authService.Register(request);
+
+            if (!response.Success)
+                return BadRequest(response);
+
+            return Ok(response);
         }
+
     }
 }

@@ -1,12 +1,10 @@
-﻿using Application.Dtos.UserDto;
+﻿using Application.Dtos.ResponseDto;
+using Application.Dtos.UserDto;
+using Application.Exceptions;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Application.Services
 {
@@ -19,56 +17,89 @@ namespace Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task AddUser(CreateUserDto user)
+        public async Task<ApiResponseDto<object>> AddUser(CreateUserDto user)
         {
+            var existing = await _userRepository.GetByEmailAsync(user.Email);
+            if (existing != null)
+                throw new ConflictException("Bu email ile zaten kayıtlı kullanıcı var.");
+
             var createUser = new User
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
-                Password = user.Password,
-                CreatedDate = DateTime.UtcNow,
-                IsDeleted = false
-
+                Password = user.Password
             };
-           await _userRepository.AddAsync(createUser);
+
+            await _userRepository.AddAsync(createUser);
+
+            return new ApiResponseDto<object>
+            {
+                Success = true,
+                Message = "Kullanıcı başarıyla eklendi",
+                Data = null
+            };
         }
 
-        public async Task DeleteUser(long Id)
-        {
-            var userDb = await _userRepository.FindByIdAsync(Id);
-            if(userDb is null)
-                throw new Exception("Kullanıcı bulunamadı");
-            await _userRepository.Delete(userDb);
-        }
-
-        public async Task<IEnumerable<User>> GetAllUsers()
-        {
-            return await _userRepository.GetAllAsync();
-
-        }
-
-        public Task<User> GetUserById(int userId)
-        {
-            var user = _userRepository.FindByIdAsync(userId);
-            if (user is null)
-                throw new Exception("Kullanıcı bulunamadı");
-            return user;
-        }
-
-       
-
-        public async Task UpdateUser(UpdateUserDto user,int id)
+        public async Task<ApiResponseDto<object>> UpdateUser(UpdateUserDto user, int id)
         {
             var userDb = await _userRepository.FindByIdAsync(id);
             if (userDb is null)
-                throw new Exception("Kullanıcı bulunamadı");
+                throw new NotFoundException("Kullanıcı bulunamadı");
+
             userDb.FirstName = user.FirstName;
             userDb.LastName = user.LastName;
             userDb.Email = user.Email;
-            userDb.UpdatedDate = DateTime.UtcNow;
-            userDb.UpdatedDate = DateTime.UtcNow;
+
             await _userRepository.Update(userDb);
+
+            return new ApiResponseDto<object>
+            {
+                Success = true,
+                Message = "Kullanıcı güncellendi",
+                Data = null
+            };
+        }
+
+        public async Task<ApiResponseDto<User>> GetUserById(int userId)
+        {
+            var user = await _userRepository.FindByIdAsync(userId);
+            if (user is null)
+                throw new NotFoundException("Kullanıcı bulunamadı");
+
+            return new ApiResponseDto<User>
+            {
+                Success = true,
+                Message = "Kullanıcı getirildi",
+                Data = user
+            };
+        }
+
+        public async Task<ApiResponseDto<IEnumerable<User>>> GetAllUsers()
+        {
+            var users = await _userRepository.GetAllAsync();
+            return new ApiResponseDto<IEnumerable<User>>
+            {
+                Success = true,
+                Message = "Kullanıcı listesi getirildi",
+                Data = users
+            };
+        }
+
+        public async Task<ApiResponseDto<object>> DeleteUser(long id)
+        {
+            var userDb = await _userRepository.FindByIdAsync(id);
+            if (userDb is null)
+                throw new NotFoundException("Kullanıcı bulunamadı");
+
+            await _userRepository.Delete(userDb);
+
+            return new ApiResponseDto<object>
+            {
+                Success = true,
+                Message = "Kullanıcı silindi",
+                Data = null
+            };
         }
     }
 }
