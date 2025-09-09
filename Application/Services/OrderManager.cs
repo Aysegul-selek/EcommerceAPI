@@ -1,7 +1,8 @@
 ﻿using Application.Dtos.Order;
-using Application.Dtos.OrderItem;
+using Application.Dtos.ResponseDto;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using AutoMapper;
 using Domain.Entities;
 
 namespace Application.Services
@@ -9,13 +10,15 @@ namespace Application.Services
     public class OrderManager : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly IMapper _mapper;
 
-        public OrderManager(IOrderRepository orderRepository)
+        public OrderManager(IOrderRepository orderRepository, IMapper mapper)
         {
             _orderRepository = orderRepository;
+            _mapper = mapper;
         }
 
-        public async Task<OrderDto> CreateStubOrderAsync(CreateOrderDto request, long userId, string? idempotencyKey = null)
+        public async Task<ApiResponseDto<OrderDto>> CreateStubOrderAsync(CreateOrderDto request, long userId, string? idempotencyKey = null)
         {
             var order = new Order
             {
@@ -39,43 +42,39 @@ namespace Application.Services
             await _orderRepository.AddOrderAsync(order);
             await _orderRepository.SaveChangesAsync();
 
-            return new OrderDto
+           
+            var dto = _mapper.Map<OrderDto>(order);
+
+            return new ApiResponseDto<OrderDto>
             {
-                Id = order.Id,
-                OrderNo = order.OrderNo,
-                TotalAmount = order.Total,
-                Status = order.Status,
-                Items = order.Items.Select(i => new OrderItemDto
-                {
-                    ProductId = i.ProductId,
-                    SKU = "", // Swagger ile manuel doldurabilirsiniz
-                    UnitPrice = i.UnitPrice,
-                    Quantity = i.Quantity
-                }).ToList()
+                Success = true,
+                Message = "Sipariş başarıyla oluşturuldu",
+                Data = dto
             };
         }
 
-        // Stub get by Id
-        public async Task<OrderDto?> GetByIdAsync(long id)
+        public async Task<ApiResponseDto<OrderDto?>> GetByIdAsync(long id)
         {
             var order = await _orderRepository.FindByIdAsync(id);
-            if (order == null) return null;
-
-            return new OrderDto
+            if (order == null)
             {
-                Id = order.Id,
-                OrderNo = order.OrderNo,
-                TotalAmount = order.Total,
-                Status = order.Status,
-                Items = order.Items.Select(i => new OrderItemDto
+                return new ApiResponseDto<OrderDto?>
                 {
-                    ProductId = i.ProductId,
-                    SKU = "", // Swagger ile manuel doldurabilirsiniz
-                    UnitPrice = i.UnitPrice,
-                    Quantity = i.Quantity
-                }).ToList()
+                    Success = false,
+                    Message = "Sipariş bulunamadı",
+                    Data = null,
+                    ErrorCodes = "ORDER_NOT_FOUND"
+                };
+            }
+
+            var dto = _mapper.Map<OrderDto>(order);
+
+            return new ApiResponseDto<OrderDto?>
+            {
+                Success = true,
+                Message = "Sipariş getirildi",
+                Data = dto
             };
         }
     }
-
 }
