@@ -14,5 +14,7 @@ namespace Domain.Entities
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
+        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
     }
 }

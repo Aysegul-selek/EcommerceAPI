@@ -29,6 +29,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
 
 
 // Services
@@ -37,6 +39,7 @@ builder.Services.AddScoped<IOrderService, OrderManager>();
 builder.Services.AddScoped<IAuthService, AuthManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IRoleService, RoleManager>();
 
 
 // AutoMapper

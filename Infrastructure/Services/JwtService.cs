@@ -21,15 +21,20 @@ namespace Infrastructure.Services
             _config = config;
         }
 
-        public string GenerateToken(User user)
+        public string GenerateToken(User user, IEnumerable<string> roles)
         {
             var claims = new List<Claim>
-        {
-                // ıd email firstname lastname ekledim
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim("fullname", $"{user.FirstName} {user.LastName}")
-        };
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+        new Claim("fullname", $"{user.FirstName} {user.LastName}")
+    };
+
+            // Kullanıcının rollerini claim olarak ekle
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -38,11 +43,12 @@ namespace Infrastructure.Services
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),// 1 saat geçerli
+                expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
     }
 }

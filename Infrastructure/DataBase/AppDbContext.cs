@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Infrastructure.DataBase
 {
@@ -27,8 +28,9 @@ namespace Infrastructure.DataBase
 
         public override Task<int> SaveChangesAsync(System.Threading.CancellationToken cancellationToken = default)
         {
-            var currentUserEmail = _httpContextAccessor.HttpContext?.User?.Claims
-                .FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value;
+            var currentUserEmail = _httpContextAccessor?.HttpContext?.User?.Claims
+                .FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value
+                ?? "System";
 
             foreach (var entry in ChangeTracker.Entries<BaseEntity>())
             {
@@ -62,16 +64,42 @@ namespace Infrastructure.DataBase
                 }
             }
 
-            // Decimal precision ayarları
-            modelBuilder.Entity<Order>(builder =>
-            {
-                builder.Property(o => o.Total).HasColumnType("decimal(18,2)");
-            });
+            // Decimal precision
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2);
 
-            modelBuilder.Entity<OrderItem>(builder =>
-            {
-                builder.Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
-            });
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Total)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<OrderItem>()
+                .Property(oi => oi.UnitPrice)
+                .HasPrecision(18, 2);
+
+            // UserRole Config
+            modelBuilder.Entity<UserRole>()
+                .HasKey(ur => ur.Id); 
+
+            modelBuilder.Entity<UserRole>()
+                .HasIndex(ur => new { ur.UserId, ur.RoleId })
+                .IsUnique(); // UserId+RoleId kombinasyonu unique
+
+            modelBuilder.Entity<UserRole>()
+                .HasOne(ur => ur.User)
+                .WithMany(u => u.UserRoles)
+                .HasForeignKey(ur => ur.UserId);
+
+            modelBuilder.Entity<UserRole>()
+                .HasOne(ur => ur.Role)
+                .WithMany(r => r.UserRoles)
+                .HasForeignKey(ur => ur.RoleId);
+
+            // Role seed data
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, Name = "Admin", CreatedDate = new DateTime(2025, 1, 1), IsDeleted = false },
+                new Role { Id = 2, Name = "Customer", CreatedDate = new DateTime(2026, 1, 1), IsDeleted = false }
+            );
         }
 
         private static LambdaExpression GetIsDeletedRestriction(Type type)

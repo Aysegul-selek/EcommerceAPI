@@ -27,6 +27,7 @@ namespace Infrastructure.Repositories
         {
             entity.IsDeleted = true;
             await Update(entity);
+
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()

@@ -14,5 +14,6 @@ namespace Application.Interfaces.Services
         Task<ApiResponseDto<IEnumerable<User>>> GetAllUsers();
         Task<ApiResponseDto<object>> UpdateUser(UpdateUserDto user, int id);
         Task<ApiResponseDto<object>> DeleteUser(long id);
+        //Task<ApiResponseDto<object>> AssignRoleToUser(long userId, long roleId);
     }
 }
