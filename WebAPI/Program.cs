@@ -1,4 +1,5 @@
-﻿using Application.Dtos.ResponseDto;
+﻿using AspNetCoreRateLimit;
+using Application.Dtos.ResponseDto;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Services;
@@ -8,18 +9,32 @@ using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Application.MappingProfiles;
-
+using Microsoft.Extensions.Configuration;
+using WebAPI.Middleware; // Added for IConfiguration
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// HttpContext accessor 
-builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
+
+// appsettings.json dosyasından ayarları okur ve servis konteynerine ekler
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimiting"));
+
+// IHttpContextAccessor hizmetini ekler, rate limiting için gereklidir
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+// Limit bilgilerini bellek içi (in-memory) depolamak için gerekli hizmeti ekler.
+builder.Services.AddInMemoryRateLimiting();
+
+// Kural setini etkinleştirir
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+
+builder.Services.AddControllers();
 
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -31,8 +46,6 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
-
-
 // Services
 builder.Services.AddScoped<IUserService, UserManager>();
 builder.Services.AddScoped<IOrderService, OrderManager>();
@@ -41,12 +54,10 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IRoleService, RoleManager>();
 
-
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-
-//jwt ayarlar?
+// JWT ayarları
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
@@ -66,9 +77,9 @@ builder.Services.AddAuthentication("Bearer")
 var app = builder.Build();
 
 // Global Exception Middleware
-app.UseMiddleware<WebAPI.Middleware.GlobalExceptionMiddleware>();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
-// yetkisiz olma durumunu yakalama
+// Yetkisiz olma durumunu yakalama
 app.UseStatusCodePages(async context =>
 {
     var response = context.HttpContext.Response;
@@ -91,17 +102,18 @@ app.UseStatusCodePages(async context =>
     }
 });
 
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// Rate limiting middlewarei
+app.UseIpRateLimiting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 
 app.Run();

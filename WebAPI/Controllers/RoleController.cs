@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
 {
-    [Authorize]
+   
     [Route("api/role")]
     [ApiController]
     public class RoleController : ControllerBase
@@ -24,6 +24,7 @@ namespace WebAPI.Controllers
             return Ok(roles);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("getrolesbyuserid/{userId}")]
         public async Task<IActionResult> GetRolesByUserId(long userId)
         {
@@ -38,18 +39,24 @@ namespace WebAPI.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("createRoleForSystem")]
         public async Task<IActionResult> CreateRole([FromBody] CreateRolDto roleDto)
         {
             var result = await _roleService.CreateRole(roleDto);
             return Ok(result);
         }
+
+
+        [Authorize(Roles = "Admin")]
         [HttpDelete("removeRoleFromUser")]
         public async Task<IActionResult> RemoveRoleFromUser([FromBody] DeleteRoleDto dto)
         {
             var result = await _roleService.RemoveRoleFromUser(dto);
             return Ok(result);
         }
+
+        [Authorize(Roles = "Admin")]
         [HttpDelete("deleteRoleForSystem/{roleId}")]
         public async Task<IActionResult> DeleteRole(long roleId)
         {

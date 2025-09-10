@@ -92,7 +92,7 @@ namespace Application.Services
                 };
             }
 
-            // sadece UserRoles tablosuna ekle
+          
             var userRole = new UserRole
             {
                 UserId = user.Id,
