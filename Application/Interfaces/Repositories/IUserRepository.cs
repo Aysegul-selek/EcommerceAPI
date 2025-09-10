@@ -13,5 +13,6 @@ namespace Application.Interfaces.Repositories
         Task<User> FindByIdAsync(long id);
         Task<User?> GetByEmailAsync(string email);
         Task AddUserRoleAsync(long userId, long roleId);
+        Task<List<UserRole>> GetUserRolesByRoleIdAsync(long roleId);
     }
 }

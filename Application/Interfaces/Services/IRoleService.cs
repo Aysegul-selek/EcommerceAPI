@@ -14,5 +14,9 @@ namespace Application.Interfaces.Services
         Task<ApiResponseDto<IEnumerable<RoleReadDto>>> GetAllAsync();
         Task<ApiResponseDto<IEnumerable<string>>> GetRolesByUserIdAsync(long userId);
         Task<ApiResponseDto<object>> AssignRoleToUser(long userId, long roleId);
+        Task<ApiResponseDto<object>> RemoveRoleFromUser(DeleteRoleDto dto);
+        Task<ApiResponseDto<object>> CreateRole(CreateRolDto roleDto);
+      //  Task<ApiResponseDto<object>> UpdateRole(long roleId, CreateRolDto roleDto);
+        Task<ApiResponseDto<object>> DeleteRole(long roleId);
     }
 }

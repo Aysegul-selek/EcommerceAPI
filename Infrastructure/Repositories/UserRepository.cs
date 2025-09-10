@@ -52,7 +52,12 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<List<UserRole>> GetUserRolesByRoleIdAsync(long roleId)
+        {
 
-
+            return await _context.UserRoles
+                .Where(ur => ur.RoleId == roleId)
+                .ToListAsync();
+        }
     }
 }

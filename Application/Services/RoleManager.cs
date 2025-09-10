@@ -108,9 +108,70 @@ namespace Application.Services
                 Data = null
             };
         }
-    
 
+        public async Task<ApiResponseDto<object>> CreateRole(CreateRolDto roleDto)
+        {
+            await _roleRepository.AddAsync(new Role
+            {
+                Name = roleDto.Name
+            });
+            return new ApiResponseDto<object>
+            {
+                Success = true,
+                Message = "Rol başarıyla oluşturuldu",
+                Data = null
+            };
+        }
 
+        public async Task<ApiResponseDto<object>> RemoveRoleFromUser(DeleteRoleDto dto)
+        {
 
+            var user = await _userRepository.FindByIdAsync(dto.userId);
+            if (user == null) throw new NotFoundException("Kullanıcı bulunamadı");
+            var role = await _roleRepository.FindByIdAsync(dto.roleId);
+            if (role == null) throw new NotFoundException("Rol bulunamadı");
+            // Kullanıcının bu role sahip olup olmadığını kontrol et
+            var existingRoles = await _roleRepository.GetRolesByUserIdAsync(dto.userId);
+            if (!existingRoles.Contains(role.Name))
+            {
+                return new ApiResponseDto<object>
+                {
+                    Success = false,
+                    Message = "Kullanıcı bu role sahip değil.",
+                    Data = null
+                };
+            }
+            
+            // UserRoles tablosundan sil
+            await _roleRepository.RemoveUserRoleAsync(dto.userId, dto.roleId);
+            return new ApiResponseDto<object>
+            {
+                Success = true,
+                Message = $"{role.Name} rolü kullanıcıdan kaldırıldı",
+                Data = null
+            };
+        }
+
+        public async Task<ApiResponseDto<object>> DeleteRole(long roleId)
+        {
+            var role = await _roleRepository.FindByIdAsync(roleId);
+            if (role == null) throw new NotFoundException("Rol bulunamadı");
+            await _roleRepository.Delete(role);
+            // Bu role sahip tüm UserRole kayıtlarını bul
+            var userRoles = await _userRepository.GetUserRolesByRoleIdAsync(roleId);
+
+            // Her bir UserRole kaydının IsDeleted özelliğini 1 yap ve güncelle
+            foreach (var userRole in userRoles)
+            {
+                userRole.IsDeleted = true;
+            }
+            await _roleRepository.SaveChanges();
+            return new ApiResponseDto<object>
+            {
+                Success = true,
+                Message = "Rol başarıyla silindi",
+                Data = null
+            };
+        }
     }
 }

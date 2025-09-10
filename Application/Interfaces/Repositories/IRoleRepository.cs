@@ -12,5 +12,7 @@ namespace Application.Interfaces.Repositories
         Task<IEnumerable<string>> GetRolesByUserIdAsync(long userId);
         Task<Role?> FindByIdAsync(long id);
         Task<IEnumerable<Role>> GetAllRolesAsync();
+        Task RemoveUserRoleAsync(long UserId, long RoleId);
+        Task SaveChanges();
     }
 }

@@ -37,5 +37,24 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
             return roles;
         }
+
+        public async Task RemoveUserRoleAsync(long UserId, long RoleId)
+        {
+
+            var userRole = await _context.UserRoles
+                .FirstOrDefaultAsync(ur => ur.UserId == UserId && ur.RoleId == RoleId);
+            if (userRole != null)
+            {
+                userRole.IsDeleted = true;
+                _context.UserRoles.Update(userRole);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task SaveChanges()
+        {
+            await _context.SaveChangesAsync();
+
+        }
     }
 }
