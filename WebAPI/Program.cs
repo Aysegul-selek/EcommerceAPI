@@ -1,13 +1,14 @@
 ﻿using Application.Dtos.ResponseDto;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using Application.MappingProfiles;
 using Application.Services;
+using AutoMapper;
+using Infrastructure;
 using Infrastructure.DataBase;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
-using Application.MappingProfiles;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +32,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 
@@ -38,10 +40,11 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 // Services
 builder.Services.AddScoped<IUserService, UserManager>();
 builder.Services.AddScoped<IOrderService, OrderManager>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-
+builder.Services.AddScoped<IProductService, ProductManager>();
 
 
 

@@ -10,47 +10,89 @@ namespace Application.Services
     public class OrderManager : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly IProductRepository _productRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public OrderManager(IOrderRepository orderRepository, IMapper mapper)
+        public OrderManager(IOrderRepository orderRepository,
+                            IProductRepository productRepository,
+                            IUnitOfWork unitOfWork,
+                            IMapper mapper)
         {
             _orderRepository = orderRepository;
+            _productRepository = productRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         public async Task<ApiResponseDto<OrderDto>> CreateStubOrderAsync(CreateOrderDto request, long userId, string? idempotencyKey = null)
         {
-            var order = new Order
-            {
-                OrderNo = "MOCK-" + DateTime.UtcNow.Ticks,
-                Status = "Draft",
-                Total = request.Items.Sum(i => i.Quantity * 10m), // fake fiyat
-                UserId = userId,
-                CreatedDate = DateTime.UtcNow
-            };
+            await _unitOfWork.BeginTransactionAsync();
 
-            foreach (var item in request.Items)
+            try
             {
-                order.Items.Add(new OrderItem
+                var order = new Order
                 {
-                    ProductId = item.ProductId,
-                    Quantity = item.Quantity,
-                    UnitPrice = 10m
-                });
+                    OrderNo = "ORD-" + DateTime.UtcNow.Ticks,
+                    Status = "Pending",
+                    UserId = userId,
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                decimal total = 0m;
+
+                foreach (var item in request.Items)
+                {
+                    var product = await _productRepository.GetByIdAsync(item.ProductId);
+
+                    if (product == null || !product.IsActive)
+                        throw new Exception($"Ürün bulunamadı veya aktif değil. ProductId: {item.ProductId}");
+
+                    if (product.Stok < item.Quantity)
+                        throw new Exception($"Yetersiz stok. ProductId: {item.ProductId}");
+
+                    // stok düş
+                    product.Stok -= item.Quantity;
+                    await _productRepository.Update(product);
+
+                    // sipariş kalemi ekle
+                    var orderItem = new OrderItem
+                    {
+                        ProductId = product.Id,
+                        Quantity = item.Quantity,
+                        UnitPrice = product.Price
+                    };
+
+                    total += orderItem.Quantity * orderItem.UnitPrice;
+                    order.Items.Add(orderItem);
+                }
+
+                order.Total = total;
+
+                await _orderRepository.AddOrderAsync(order);
+                await _orderRepository.SaveChangesAsync();
+
+                await _unitOfWork.CommitAsync();
+
+                var dto = _mapper.Map<OrderDto>(order);
+
+                return new ApiResponseDto<OrderDto>
+                {
+                    Success = true,
+                    Message = "Sipariş başarıyla oluşturuldu",
+                    Data = dto
+                };
             }
-
-            await _orderRepository.AddOrderAsync(order);
-            await _orderRepository.SaveChangesAsync();
-
-           
-            var dto = _mapper.Map<OrderDto>(order);
-
-            return new ApiResponseDto<OrderDto>
+            catch (Exception ex)
             {
-                Success = true,
-                Message = "Sipariş başarıyla oluşturuldu",
-                Data = dto
-            };
+                await _unitOfWork.RollbackAsync();
+
+                return new ApiResponseDto<OrderDto>
+                {
+                    Success = false,
+                    Message = $"Sipariş oluşturulamadı: {ex.Message}"
+                };
+            }
         }
 
         public async Task<ApiResponseDto<OrderDto?>> GetByIdAsync(long id)
@@ -62,7 +104,6 @@ namespace Application.Services
                 {
                     Success = false,
                     Message = "Sipariş bulunamadı",
-                    Data = null,
                     ErrorCodes = "ORDER_NOT_FOUND"
                 };
             }
@@ -74,6 +115,30 @@ namespace Application.Services
                 Success = true,
                 Message = "Sipariş getirildi",
                 Data = dto
+            };
+        }
+
+        public async Task<ApiResponseDto<List<OrderDto>>> GetOrdersAsync()
+        {
+            var orders= await _orderRepository.GetAllAsync();
+            var dtos = _mapper.Map<List<OrderDto>>(orders);
+            return new ApiResponseDto<List<OrderDto>>
+            {
+                Success = true,
+                Message = "Siparişler listelendi",
+                Data = dtos
+            };
+        }
+
+        public async Task<ApiResponseDto<List<OrderDto>>> GetOrdersByUserAsync(long userId)
+        {
+            var orders = (await _orderRepository.GetAllAsync()).Where(o => o.UserId == userId).ToList();
+            var dtos=_mapper.Map<List<OrderDto>>(orders);
+            return new ApiResponseDto<List<OrderDto>>
+            {
+                Success = true,
+                Message = "Kullanıcı siparişleri listelendi",
+                Data = dtos
             };
         }
     }

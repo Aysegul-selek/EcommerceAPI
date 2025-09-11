@@ -10,6 +10,7 @@ namespace Application.Interfaces.Repositories
     {
         
         Task<IEnumerable<T>> GetAllAsync();
+        Task<T?> GetByIdAsync(long id);
         Task AddAsync(T entity);
         Task Update(T entity);
         Task Delete(T entity);

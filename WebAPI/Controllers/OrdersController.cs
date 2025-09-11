@@ -16,30 +16,50 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// Hafta 1: Sepetsiz stub sipariş oluştur
+        /// Sepetsiz stub sipariş oluştur
         /// </summary>
-        [HttpPost]
-        public async Task<ActionResult<OrderDto>> CreateStubOrder([FromBody] CreateOrderDto request)
+        [HttpPost("create/{userId}")]
+        public async Task<ActionResult> CreateStubOrder(long userId, [FromBody] CreateOrderDto request)
         {
-            // TODO: Auth / userId gerçekten alınacak. Şimdilik mock userId = 1
-            int userId = 1;
+            var result = await _orderService.CreateStubOrderAsync(request, userId);
 
-            var order = await _orderService.CreateStubOrderAsync(request, userId);
+            if (!result.Success)
+                return BadRequest(result);
 
-            return Ok(order);
+            return Ok(result);
         }
 
         /// <summary>
-        /// Hafta 1: Stub sipariş getir
+        /// Sipariş detayını getir
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<OrderDto>> GetById(int id)
+        public async Task<ActionResult> GetById(long id)
         {
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null)
-                return NotFound(new { message = "Sipariş bulunamadı." });
+            var result = await _orderService.GetByIdAsync(id);
+            if (!result.Success)
+                return NotFound(result);
 
-            return Ok(order);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Tüm siparişleri listele
+        /// </summary>
+        [HttpGet("list")]
+        public async Task<ActionResult> GetOrders()
+        {
+            var result = await _orderService.GetOrdersAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Kullanıcıya ait siparişleri listele
+        /// </summary>
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult> GetOrdersByUser(long userId)
+        {
+            var result = await _orderService.GetOrdersByUserAsync(userId);
+            return Ok(result);
         }
     }
 }
