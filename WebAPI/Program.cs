@@ -1,5 +1,4 @@
 ﻿using AspNetCoreRateLimit;
-using Application.Dtos.ResponseDto;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Services;
@@ -7,16 +6,17 @@ using Infrastructure.DataBase;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
 using Application.MappingProfiles;
-using Microsoft.Extensions.Configuration;
-using WebAPI.Middleware; // Added for IConfiguration
+using WebAPI.Middleware;
+using WebAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
 
 builder.Services.AddMemoryCache();
 
@@ -30,9 +30,8 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 // Limit bilgilerini bellek içi (in-memory) depolamak için gerekli hizmeti ekler.
 builder.Services.AddInMemoryRateLimiting();
 
-// Kural setini etkinleştirir
-builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 builder.Services.AddControllers();
 
@@ -58,57 +57,21 @@ builder.Services.AddScoped<IRoleService, RoleManager>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // JWT ayarları
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer("Bearer", options =>
-    {
-        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-        };
-    });
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
 
 var app = builder.Build();
 
-// Global Exception Middleware
+
+
+app.UseCustomMiddlewares(TimeSpan.FromSeconds(1));
 app.UseMiddleware<GlobalExceptionMiddleware>();
-
-// Yetkisiz olma durumunu yakalama
-app.UseStatusCodePages(async context =>
-{
-    var response = context.HttpContext.Response;
-    if (response.StatusCode == 401 || response.StatusCode == 403)
-    {
-        response.ContentType = "application/json";
-
-        var result = new ApiResponseDto<object>
-        {
-            Success = false,
-            Message = response.StatusCode == 401
-                ? "Kullanıcı yetkili değil veya token geçersiz."
-                : "Erişim yetkiniz yok.",
-            Data = null,
-            ErrorCodes = ErrorCodes.Unauthorized
-        };
-
-        var json = System.Text.Json.JsonSerializer.Serialize(result);
-        await response.WriteAsync(json);
-    }
-});
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// Rate limiting middlewarei
 app.UseIpRateLimiting();
 
 app.UseAuthentication();

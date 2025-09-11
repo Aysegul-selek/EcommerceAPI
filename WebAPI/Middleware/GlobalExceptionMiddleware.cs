@@ -31,6 +31,12 @@ namespace WebAPI.Middleware
 
         private static Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
+            if (ex is OperationCanceledException)
+            {
+               
+                return Task.CompletedTask;
+            }
+
             context.Response.ContentType = "application/json";
 
             var response = new ApiResponseDto<object>
@@ -64,5 +70,6 @@ namespace WebAPI.Middleware
             var result = JsonSerializer.Serialize(response);
             return context.Response.WriteAsync(result);
         }
+
     }
 }

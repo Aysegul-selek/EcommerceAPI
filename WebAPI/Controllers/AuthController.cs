@@ -1,7 +1,9 @@
 ﻿using Application.Dtos.AuthDto;
 using Application.Interfaces.Services;
+using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading;
 
 namespace WebAPI.Controllers
 {
@@ -19,11 +21,18 @@ namespace WebAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
+
+
+         //  await Task.Delay(3000);// deneme amaçlı ekledim
             var response = await _authService.LoginAsync(request);
+
             if (!response.Success) return BadRequest(response);
 
             return Ok(response);
+            
+           
         }
+
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)

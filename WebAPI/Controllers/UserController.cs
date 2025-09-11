@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
 {
-    [Authorize]
+   [Authorize]
     [Route("api/v1/user")]
     [ApiController]
     public class UserController : ControllerBase
