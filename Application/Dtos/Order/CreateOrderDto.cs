@@ -10,6 +10,6 @@ namespace Application.Dtos.Order
     public class CreateOrderDto
     {
         public List<CreateOrderItemDto> Items { get; set; } = new();
-        // TODO: address/payment info will be added in W2
+        
     }
 }

@@ -39,5 +39,10 @@ namespace Infrastructure.Repositories
             _context.Set<T>().Update(entity);
             await _context.SaveChangesAsync();
         }
+        public async Task<T?> GetByIdAsync(long id)
+        {
+            return await _context.Set<T>().FindAsync(id);
+        }
+
     }
 }
