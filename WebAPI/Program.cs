@@ -16,6 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// cors ayarları
+builder.Services.AddCorsPolicy();
+
 
 
 builder.Services.AddMemoryCache();
@@ -62,7 +65,7 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
-
+app.UseCors();
 
 app.UseCustomMiddlewares(TimeSpan.FromSeconds(1));
 app.UseMiddleware<GlobalExceptionMiddleware>();
