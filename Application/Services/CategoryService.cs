@@ -8,6 +8,7 @@ using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entities;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Application.Services
 {
@@ -15,35 +16,83 @@ namespace Application.Services
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
+        private readonly IMemoryCache _cache;
 
-        public CategoryService(ICategoryRepository categoryRepository, IMapper mapper)
+        // Cache key isimleri
+        private const string AllCategoriesCacheKey = "AllCategories";
+        private const string ActiveCategoriesCacheKey = "ActiveCategories";
+
+        public CategoryService(ICategoryRepository categoryRepository, IMapper mapper, IMemoryCache cache)
         {
             _categoryRepository = categoryRepository;
             _mapper = mapper;
+            _cache = cache;
         }
 
         public async Task<IEnumerable<CategoryDto>> GetAllAsync()
         {
-            var categories = await _categoryRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<CategoryDto>>(categories);
+            if (!_cache.TryGetValue(AllCategoriesCacheKey, out IEnumerable<CategoryDto> categoriesDto))
+            {
+                var categories = await _categoryRepository.GetAllAsync();
+                categoriesDto = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+
+                _cache.Set(AllCategoriesCacheKey, categoriesDto, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
+            }
+
+            return categoriesDto;
         }
 
         public async Task<IEnumerable<CategoryDto>> GetActiveCategoriesAsync()
         {
-            var categories = await _categoryRepository.GetActiveCategoriesAsync();
-            return _mapper.Map<IEnumerable<CategoryDto>>(categories);
+            if (!_cache.TryGetValue(ActiveCategoriesCacheKey, out IEnumerable<CategoryDto> activeCategoriesDto))
+            {
+                var categories = await _categoryRepository.GetActiveCategoriesAsync();
+                activeCategoriesDto = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+
+                _cache.Set(ActiveCategoriesCacheKey, activeCategoriesDto, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                    SlidingExpiration = TimeSpan.FromMinutes(30)
+                });
+            }
+
+            return activeCategoriesDto;
         }
 
         public async Task<CategoryDto?> GetByIdAsync(int id)
         {
-            var category = await _categoryRepository.GetByIdAsync(id);
-            return _mapper.Map<CategoryDto?>(category);
+            var cacheKey = $"Category_{id}";
+            if (!_cache.TryGetValue(cacheKey, out CategoryDto? categoryDto))
+            {
+                var category = await _categoryRepository.GetByIdAsync(id);
+                categoryDto = _mapper.Map<CategoryDto?>(category);
+
+                if (categoryDto != null)
+                {
+                    _cache.Set(cacheKey, categoryDto, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                        SlidingExpiration = TimeSpan.FromMinutes(30)
+                    });
+                }
+            }
+
+            return categoryDto;
         }
 
         public async Task<CategoryDto> CreateAsync(CreateCategoryDto categoryDto)
         {
             var category = _mapper.Map<Category>(categoryDto);
             await _categoryRepository.AddAsync(category);
+
+            // Cache’i temizle
+            _cache.Remove(AllCategoriesCacheKey);
+            _cache.Remove(ActiveCategoriesCacheKey);
+
             return _mapper.Map<CategoryDto>(category);
         }
 
@@ -51,6 +100,11 @@ namespace Application.Services
         {
             var category = _mapper.Map<Category>(categoryDto);
             await _categoryRepository.Update(category);
+
+            // Cache’i temizle
+            _cache.Remove(AllCategoriesCacheKey);
+            _cache.Remove(ActiveCategoriesCacheKey);
+            _cache.Remove($"Category_{categoryDto.Id}");
         }
 
         public async Task DeleteAsync(int id)
@@ -59,6 +113,11 @@ namespace Application.Services
             if (category != null)
             {
                 await _categoryRepository.Delete(category);
+
+                // Cache’i temizle
+                _cache.Remove(AllCategoriesCacheKey);
+                _cache.Remove(ActiveCategoriesCacheKey);
+                _cache.Remove($"Category_{id}");
             }
         }
 
