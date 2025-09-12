@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Infrastructure.DataBase
 {
@@ -72,6 +73,7 @@ namespace Infrastructure.DataBase
             {
                 builder.Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
             });
+
         }
 
         private static LambdaExpression GetIsDeletedRestriction(Type type)
@@ -83,3 +85,4 @@ namespace Infrastructure.DataBase
         }
     }
 }
+

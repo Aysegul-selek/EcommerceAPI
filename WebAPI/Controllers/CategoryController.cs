@@ -131,5 +131,21 @@ namespace WebAPI.Controllers
                 Message = "Category deleted successfully"
             });
         }
+
+        // GET /api/v1/categories/tree
+        [HttpGet("tree")]
+        public async Task<IActionResult> GetTree()
+        {
+            var categoryTree = await _categoryService.GetCategoryTreeAsync();
+
+            var response = new ApiResponseDto<IEnumerable<CategoryTreeDto>>
+            {
+                Success = true,
+                Message = "Category tree fetched successfully",
+                Data = categoryTree
+            };
+
+            return Ok(response);
+        }
     }
 }

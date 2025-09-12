@@ -30,6 +30,9 @@ namespace Application.Interfaces.Services
 
         // İsim ile kategori getirir
         Task<CategoryDto?> GetByNameAsync(string name);
-        
+
+        // Category Tree
+        Task<IEnumerable<CategoryTreeDto>> GetCategoryTreeAsync();
+
     }
 }

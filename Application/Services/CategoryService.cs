@@ -126,5 +126,37 @@ namespace Application.Services
             var category = await _categoryRepository.GetByNameAsync(name);
             return _mapper.Map<CategoryDto?>(category);
         }
+
+        public async Task<IEnumerable<CategoryTreeDto>> GetCategoryTreeAsync()
+        {
+            var activeCategories = await GetActiveCategoriesAsync();
+
+            // DTO listesi
+            var categoryTreeList = activeCategories.Select(c => new CategoryTreeDto
+            {
+                Id = c.Id,
+                Name = c.Name
+            }).ToList();
+
+            // Id -> DTO lookup
+            var lookup = categoryTreeList.ToDictionary(c => c.Id);
+
+            foreach (var c in activeCategories)
+            {
+                if (c.ParentId != 0 && lookup.TryGetValue(c.ParentId, out var parent))
+                {
+                    parent.Children.Add(lookup[c.Id]);
+                }
+            }
+
+            // Root kategoriler
+            var roots = categoryTreeList
+                .Where(c => activeCategories.First(ac => ac.Id == c.Id).ParentId == 0)
+                .ToList();
+
+            return roots;
+        }
+
+
     }
 }

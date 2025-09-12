@@ -36,6 +36,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 
+
 // Services
 builder.Services.AddScoped<IUserService, UserManager>();
 builder.Services.AddScoped<IOrderService, OrderManager>();
@@ -44,6 +45,8 @@ builder.Services.AddScoped<IAuthService, AuthManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductManager>();
+
+
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
