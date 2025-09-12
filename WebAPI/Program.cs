@@ -21,6 +21,9 @@ builder.Services.AddSwaggerGen();
 // HttpContext accessor 
 builder.Services.AddHttpContextAccessor();
 
+// Cache için
+builder.Services.AddMemoryCache();
+
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

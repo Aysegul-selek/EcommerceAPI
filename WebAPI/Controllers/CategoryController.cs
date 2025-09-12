@@ -1,4 +1,5 @@
 ﻿using Application.Dtos.Category;
+using Application.Dtos.ResponseDto;
 using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,7 +21,15 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> GetAll()
         {
             var categories = await _categoryService.GetAllAsync();
-            return Ok(categories);
+
+            var response = new ApiResponseDto<IEnumerable<CategoryDto>>
+            {
+                Success = true,
+                Message = "Categories fetched successfully",
+                Data = categories
+            };
+
+            return Ok(response);
         }
 
         // GET /api/v1/categories/active
@@ -28,7 +37,15 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> GetActive()
         {
             var categories = await _categoryService.GetActiveCategoriesAsync();
-            return Ok(categories);
+
+            var response = new ApiResponseDto<IEnumerable<CategoryDto>>
+            {
+                Success = true,
+                Message = "Active categories fetched successfully",
+                Data = categories
+            };
+
+            return Ok(response);
         }
 
         // GET /api/v1/categories/{id}
@@ -37,9 +54,22 @@ namespace WebAPI.Controllers
         {
             var category = await _categoryService.GetByIdAsync(id);
             if (category == null)
-                return NotFound($"Category with id {id} not found.");
+            {
+                return NotFound(new ApiResponseDto<CategoryDto>
+                {
+                    Success = false,
+                    Message = $"Category with id {id} not found."
+                });
+            }
 
-            return Ok(category);
+            var response = new ApiResponseDto<CategoryDto>
+            {
+                Success = true,
+                Message = "Category fetched successfully",
+                Data = category
+            };
+
+            return Ok(response);
         }
 
         // POST /api/v1/categories
@@ -47,10 +77,24 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                return BadRequest(new ApiResponseDto<object>
+                {
+                    Success = false,
+                    Message = "Invalid model state"
+                });
+            }
 
             var created = await _categoryService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+
+            var response = new ApiResponseDto<CategoryDto>
+            {
+                Success = true,
+                Message = "Category created successfully",
+                Data = created
+            };
+
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, response);
         }
 
         // PUT /api/v1/categories/{id}
@@ -58,10 +102,21 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
         {
             if (id != dto.Id)
-                return BadRequest("Id mismatch.");
+            {
+                return BadRequest(new ApiResponseDto<object>
+                {
+                    Success = false,
+                    Message = "Id mismatch."
+                });
+            }
 
             await _categoryService.UpdateAsync(dto);
-            return NoContent();
+
+            return Ok(new ApiResponseDto<object>
+            {
+                Success = true,
+                Message = "Category updated successfully"
+            });
         }
 
         // DELETE /api/v1/categories/{id}
@@ -69,7 +124,12 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             await _categoryService.DeleteAsync(id);
-            return NoContent();
+
+            return Ok(new ApiResponseDto<object>
+            {
+                Success = true,
+                Message = "Category deleted successfully"
+            });
         }
     }
 }
