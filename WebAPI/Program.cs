@@ -11,14 +11,15 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using WebAPI.Middleware;
 using WebAPI.Extensions;
+using Infrastructure.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Swagger
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Serilog yapılandırması (CorrelationId artık middleware’den geliyor)
+// Serilog yapılandırması
 builder.Host.UseSerilog((ctx, lc) => lc
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
@@ -31,6 +32,14 @@ builder.Host.UseSerilog((ctx, lc) => lc
         outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] [CorrelationId:{CorrelationId}] {Message:lj}{NewLine}{Exception}")
 );
 
+// HealthChecks servisini ekleme
+builder.Services.AddHealthChecks()
+    // Buraya özel health check sınıfımızı generic olarak ekliyoruz
+    .AddCheck<MsSqlHealthCheck>("mssql-check");
+
+// MsSqlHealthCheck sınıfını da bir servis olarak eklemeliyiz.
+// ConnectionString'i constructor'ına geçirmek için singleton kullanıyoruz.
+builder.Services.AddSingleton(new MsSqlHealthCheck(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // cors ayarları
 builder.Services.AddCorsPolicy();
@@ -78,10 +87,9 @@ var app = builder.Build();
 
 app.UseCors();
 
-// CorrelationId middleware (log context’i burada set ediyoruz)
 app.UseMiddleware<CorrelationIdMiddleware>();
 
-// Custom middlewares
+
 app.UseCustomMiddlewares(TimeSpan.FromSeconds(20));
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
@@ -97,5 +105,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();

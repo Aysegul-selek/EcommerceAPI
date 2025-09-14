@@ -26,7 +26,7 @@ namespace WebAPI.Middleware
             // Response header olarak ekle
             context.Response.Headers[CorrelationHeader] = correlationId;
 
-            // HttpContext.Items içine de koy, başka yerlerde lazım olabilir
+            // HttpContext.Items içine koy
             context.Items["CorrelationId"] = correlationId;
 
             // Serilog log context’e property olarak ekle
