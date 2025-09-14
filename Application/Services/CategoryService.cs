@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Application.Dtos.Category;
 using Application.Interfaces.Repositories;
@@ -9,6 +8,7 @@ using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entities;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services
 {
@@ -17,30 +17,44 @@ namespace Application.Services
         private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
         private readonly IMemoryCache _cache;
+        private readonly ILogger<CategoryService> _logger;
 
         // Cache key isimleri
         private const string AllCategoriesCacheKey = "AllCategories";
         private const string ActiveCategoriesCacheKey = "ActiveCategories";
+        private const string CategoryTreeCacheKey = "CategoryTree";
 
-        public CategoryService(ICategoryRepository categoryRepository, IMapper mapper, IMemoryCache cache)
+        private readonly MemoryCacheEntryOptions _cacheOptions =
+            new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
+                SlidingExpiration = TimeSpan.FromMinutes(30)
+            };
+
+        public CategoryService(
+            ICategoryRepository categoryRepository,
+            IMapper mapper,
+            IMemoryCache cache,
+            ILogger<CategoryService> logger)
         {
             _categoryRepository = categoryRepository;
             _mapper = mapper;
             _cache = cache;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<CategoryDto>> GetAllAsync()
         {
             if (!_cache.TryGetValue(AllCategoriesCacheKey, out IEnumerable<CategoryDto> categoriesDto))
             {
+                _logger.LogInformation("CACHE MISS: {key}", AllCategoriesCacheKey);
                 var categories = await _categoryRepository.GetAllAsync();
                 categoriesDto = _mapper.Map<IEnumerable<CategoryDto>>(categories);
-
-                _cache.Set(AllCategoriesCacheKey, categoriesDto, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
-                });
+                _cache.Set(AllCategoriesCacheKey, categoriesDto, _cacheOptions);
+            }
+            else
+            {
+                _logger.LogInformation("CACHE HIT: {key}", AllCategoriesCacheKey);
             }
 
             return categoriesDto;
@@ -50,14 +64,14 @@ namespace Application.Services
         {
             if (!_cache.TryGetValue(ActiveCategoriesCacheKey, out IEnumerable<CategoryDto> activeCategoriesDto))
             {
+                _logger.LogInformation("CACHE MISS: {key}", ActiveCategoriesCacheKey);
                 var categories = await _categoryRepository.GetActiveCategoriesAsync();
                 activeCategoriesDto = _mapper.Map<IEnumerable<CategoryDto>>(categories);
-
-                _cache.Set(ActiveCategoriesCacheKey, activeCategoriesDto, new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                    SlidingExpiration = TimeSpan.FromMinutes(30)
-                });
+                _cache.Set(ActiveCategoriesCacheKey, activeCategoriesDto, _cacheOptions);
+            }
+            else
+            {
+                _logger.LogInformation("CACHE HIT: {key}", ActiveCategoriesCacheKey);
             }
 
             return activeCategoriesDto;
@@ -68,17 +82,18 @@ namespace Application.Services
             var cacheKey = $"Category_{id}";
             if (!_cache.TryGetValue(cacheKey, out CategoryDto? categoryDto))
             {
+                _logger.LogInformation("CACHE MISS: {key}", cacheKey);
                 var category = await _categoryRepository.GetByIdAsync(id);
                 categoryDto = _mapper.Map<CategoryDto?>(category);
 
                 if (categoryDto != null)
                 {
-                    _cache.Set(cacheKey, categoryDto, new MemoryCacheEntryOptions
-                    {
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1),
-                        SlidingExpiration = TimeSpan.FromMinutes(30)
-                    });
+                    _cache.Set(cacheKey, categoryDto, _cacheOptions);
                 }
+            }
+            else
+            {
+                _logger.LogInformation("CACHE HIT: {key}", cacheKey);
             }
 
             return categoryDto;
@@ -89,10 +104,7 @@ namespace Application.Services
             var category = _mapper.Map<Category>(categoryDto);
             await _categoryRepository.AddAsync(category);
 
-            // Cache’i temizle
-            _cache.Remove(AllCategoriesCacheKey);
-            _cache.Remove(ActiveCategoriesCacheKey);
-
+            InvalidateCategoryCaches(category.Id);
             return _mapper.Map<CategoryDto>(category);
         }
 
@@ -101,10 +113,7 @@ namespace Application.Services
             var category = _mapper.Map<Category>(categoryDto);
             await _categoryRepository.Update(category);
 
-            // Cache’i temizle
-            _cache.Remove(AllCategoriesCacheKey);
-            _cache.Remove(ActiveCategoriesCacheKey);
-            _cache.Remove($"Category_{categoryDto.Id}");
+            InvalidateCategoryCaches(categoryDto.Id);
         }
 
         public async Task DeleteAsync(int id)
@@ -113,11 +122,7 @@ namespace Application.Services
             if (category != null)
             {
                 await _categoryRepository.Delete(category);
-
-                // Cache’i temizle
-                _cache.Remove(AllCategoriesCacheKey);
-                _cache.Remove(ActiveCategoriesCacheKey);
-                _cache.Remove($"Category_{id}");
+                InvalidateCategoryCaches(id);
             }
         }
 
@@ -129,6 +134,13 @@ namespace Application.Services
 
         public async Task<IEnumerable<CategoryTreeDto>> GetCategoryTreeAsync()
         {
+            if (_cache.TryGetValue(CategoryTreeCacheKey, out IEnumerable<CategoryTreeDto>? cachedTree))
+            {
+                _logger.LogInformation("CACHE HIT: {key}", CategoryTreeCacheKey);
+                return cachedTree!;
+            }
+
+            _logger.LogInformation("CACHE MISS: {key}", CategoryTreeCacheKey);
             var activeCategories = await GetActiveCategoriesAsync();
 
             // DTO listesi
@@ -138,7 +150,7 @@ namespace Application.Services
                 Name = c.Name
             }).ToList();
 
-            // Id -> DTO lookup
+            // Lookup (id -> dto)
             var lookup = categoryTreeList.ToDictionary(c => c.Id);
 
             foreach (var c in activeCategories)
@@ -154,9 +166,19 @@ namespace Application.Services
                 .Where(c => activeCategories.First(ac => ac.Id == c.Id).ParentId == 0)
                 .ToList();
 
+            _cache.Set(CategoryTreeCacheKey, roots, _cacheOptions);
             return roots;
         }
 
+        // --- Centralized cache invalidation ---
+        private void InvalidateCategoryCaches(long affectedCategoryId)
+        {
+            _logger.LogInformation("CACHE INVALIDATE for category id {id}", affectedCategoryId);
 
+            _cache.Remove(AllCategoriesCacheKey);
+            _cache.Remove(ActiveCategoriesCacheKey);
+            _cache.Remove(CategoryTreeCacheKey);
+            _cache.Remove($"Category_{affectedCategoryId}");
+        }
     }
 }
