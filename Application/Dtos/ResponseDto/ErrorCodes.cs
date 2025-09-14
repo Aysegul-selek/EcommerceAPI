@@ -13,5 +13,6 @@ namespace Application.Dtos.ResponseDto
         public const string Exception = "EXCEPTION";
         public const string ValidationError = "VALIDATION_ERROR";
         public const string Conflict = "CONFLICT";
+        public const string Timeout = "TIMEOUT";
     }
 }

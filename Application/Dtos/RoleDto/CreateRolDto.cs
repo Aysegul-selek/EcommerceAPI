@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Application.Dtos.RoleDto
 {
-    public class Role : BaseEntity
+    public class CreateRolDto
     {
         public string Name { get; set; }
-        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 }

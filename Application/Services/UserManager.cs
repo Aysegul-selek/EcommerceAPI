@@ -11,10 +11,12 @@ namespace Application.Services
     public class UserManager : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IRoleRepository _roleRepository;
 
-        public UserManager(IUserRepository userRepository)
+        public UserManager(IUserRepository userRepository, IRoleRepository roleRepository)
         {
             _userRepository = userRepository;
+            _roleRepository = roleRepository;
         }
 
         public async Task<ApiResponseDto<object>> AddUser(CreateUserDto user)
@@ -101,5 +103,8 @@ namespace Application.Services
                 Data = null
             };
         }
+
+        
+
     }
 }

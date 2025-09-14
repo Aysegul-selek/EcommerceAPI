@@ -11,11 +11,13 @@ namespace Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
+        private readonly IRoleRepository _roleRepository;
 
-        public AuthManager(IUserRepository userRepository, IJwtService jwtService)
+        public AuthManager(IUserRepository userRepository, IJwtService jwtService, IRoleRepository roleRepository)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
+            _roleRepository = roleRepository;
         }
 
         public async Task<ApiResponseDto<LoginResponse?>> LoginAsync(LoginRequestDto request)
@@ -31,7 +33,11 @@ namespace Application.Services
                     ErrorCodes = ErrorCodes.NotFound
                 };
             }
-            var token = _jwtService.GenerateToken(user);
+            // Rollerini bul
+            var roles = await _roleRepository.GetRolesByUserIdAsync(user.Id);
+
+            // Token üret
+            var token = _jwtService.GenerateToken(user, roles);
 
             var loginResponse= new LoginResponse
             {
