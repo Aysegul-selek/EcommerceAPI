@@ -1,6 +1,7 @@
 ﻿using Application.Dtos.ResponseDto;
 using Application.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Serilog;
 using System;
 using System.Net;
 using System.Text.Json;
@@ -33,7 +34,7 @@ namespace WebAPI.Middleware
         {
             if (ex is OperationCanceledException)
             {
-               
+                Log.Warning("Request iptal edildi.");
                 return Task.CompletedTask;
             }
 
@@ -52,24 +53,27 @@ namespace WebAPI.Middleware
                 case NotFoundException:
                     context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                     response.ErrorCodes = ErrorCodes.NotFound;
+                    Log.Warning(ex, "NotFoundException oluştu.");
                     break;
                 case ConflictException:
                     context.Response.StatusCode = (int)HttpStatusCode.Conflict;
                     response.ErrorCodes = ErrorCodes.Conflict;
+                    Log.Warning(ex, "ConflictException oluştu.");
                     break;
                 case UnauthorizedException:
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                     response.ErrorCodes = ErrorCodes.Unauthorized;
+                    Log.Warning(ex, "UnauthorizedException oluştu.");
                     break;
                 default:
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     response.ErrorCodes = ErrorCodes.Exception;
+                    Log.Error(ex, "Beklenmeyen bir hata oluştu.");
                     break;
             }
 
             var result = JsonSerializer.Serialize(response);
             return context.Response.WriteAsync(result);
         }
-
     }
 }

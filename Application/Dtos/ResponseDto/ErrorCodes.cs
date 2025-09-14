@@ -14,5 +14,6 @@ namespace Application.Dtos.ResponseDto
         public const string ValidationError = "VALIDATION_ERROR";
         public const string Conflict = "CONFLICT";
         public const string Timeout = "TIMEOUT";
+        public const string ServerError = "SERVER_ERROR";
     }
 }
