@@ -3,12 +3,12 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Infrastructure.HealthChecks
 {
+    // normalde IHealthCheck interfacesini kullanmaya gerek yok çünkü projede dış servisler yok
     public class MsSqlHealthCheck : IHealthCheck
     {
         private readonly string _connectionString;
 
-        // Boş constructor'ı kaldırabiliriz, çünkü kullanılmıyor.
-        // public MsSqlHealthCheck() { } 
+       
 
         public MsSqlHealthCheck(string connectionString)
         {

@@ -34,11 +34,8 @@ builder.Host.UseSerilog((ctx, lc) => lc
 
 // HealthChecks servisini ekleme
 builder.Services.AddHealthChecks()
-    // Buraya özel health check sınıfımızı generic olarak ekliyoruz
     .AddCheck<MsSqlHealthCheck>("mssql-check");
 
-// MsSqlHealthCheck sınıfını da bir servis olarak eklemeliyiz.
-// ConnectionString'i constructor'ına geçirmek için singleton kullanıyoruz.
 builder.Services.AddSingleton(new MsSqlHealthCheck(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // cors ayarları
@@ -106,6 +103,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health");// healtyCheck endpointi
 
 app.Run();
