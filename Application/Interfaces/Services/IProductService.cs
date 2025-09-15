@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Dtos.Product;
+using Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,6 +12,9 @@ namespace Application.Interfaces.Services
         Task<IEnumerable<Product>> GetAllActiveAsync();
         Task AddAsync(Product product);
         Task UpdateAsync(Product product);
-        Task DeleteAsync(long id);  
+        Task DeleteAsync(long id);
+
+        //sayfalama + ürünler bir arada dönecek
+        Task<ProductSearchResponseDto> SearchProductsAsync(ProductSearchRequestDto request);
     }
 }
