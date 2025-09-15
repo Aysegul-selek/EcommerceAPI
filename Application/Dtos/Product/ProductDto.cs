@@ -8,7 +8,7 @@ namespace Application.Dtos.Product
 {
     public class ProductDto
     {
-        public int Id { get; set; }  
+        public long Id { get; set; }  
         public int Sku { get; set; }
         public string Name { get; set; } = null!;
         public string Slug { get; set; } = null!;
