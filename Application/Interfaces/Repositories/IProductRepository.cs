@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Dtos.Product;
+using Domain.Entities;
 
 namespace Application.Interfaces.Repositories
 {
@@ -6,5 +7,8 @@ namespace Application.Interfaces.Repositories
     {
         Task<Product?> GetBySkuAsync(int sku);
         Task<IEnumerable<Product>> GetAllActiveAsync();
+
+        // Tuple dönüyoruz: (Filtrelenmiş ürünler, Toplam kayıt sayısı)
+        Task<(IEnumerable<Product> Products, int TotalCount)> SearchProductsAsync(ProductSearchRequestDto request);
     }
 }
