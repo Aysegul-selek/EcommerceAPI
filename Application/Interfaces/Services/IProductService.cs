@@ -16,5 +16,8 @@ namespace Application.Interfaces.Services
 
         //sayfalama + ürünler bir arada dönecek
         Task<ProductSearchResponseDto> SearchProductsAsync(ProductSearchRequestDto request);
+
+        // --- Slug guard ---
+        Task<string> GenerateUniqueSlugAsync(string slug);
     }
 }

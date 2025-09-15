@@ -22,6 +22,13 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync(p => p.Sku == sku && !p.IsDeleted && p.IsActive);
         }
 
+        public async Task<Product?> GetBySlugAsync(string slug)
+        {
+            return await _context.Products
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Slug == slug && !p.IsDeleted);
+        }
+
         public async Task<IEnumerable<Product>> GetAllActiveAsync()
         {
             return await _context.Products
@@ -78,6 +85,13 @@ namespace Infrastructure.Repositories
             var products = await query.Skip(skip).Take(request.PageSize).ToListAsync();
 
             return (products, totalCount);
+        }
+
+        public async Task<bool> SlugExistsAsync(string slug)
+        {
+            return await _context.Products
+                .AsNoTracking()
+                .AnyAsync(p => p.Slug == slug && !p.IsDeleted);
         }
     }
 }

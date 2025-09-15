@@ -18,12 +18,13 @@ namespace WebAPI.Controllers
             _productService = productService;
         }
 
-        /// <summary>
-        /// Ürün ekle
-        /// </summary>
+        // Ürün ekle
         [HttpPost]
         public async Task<ActionResult<ApiResponseDto<Product>>> AddProduct([FromBody] Product product)
         {
+            // Benzersiz slug üret
+            product.Slug = await _productService.GenerateUniqueSlugAsync(product.Slug);
+
             await _productService.AddAsync(product);
             return Ok(new ApiResponseDto<Product>
             {
@@ -33,9 +34,7 @@ namespace WebAPI.Controllers
             });
         }
 
-        /// <summary>
-        /// Tüm aktif ürünleri getir
-        /// </summary>
+        // Tüm aktif ürünleri getir
         [HttpGet]
         public async Task<ActionResult<ApiResponseDto<IEnumerable<Product>>>> GetAll()
         {
@@ -47,9 +46,7 @@ namespace WebAPI.Controllers
             });
         }
 
-        /// <summary>
-        /// Ürün detayı
-        /// </summary>
+        // Ürün detayı
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponseDto<Product>>> GetById(long id)
         {
@@ -68,9 +65,8 @@ namespace WebAPI.Controllers
             });
         }
 
-        /// <summary>
-        /// Ürün güncelle
-        /// </summary>
+       
+        // Ürün güncelle
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResponseDto<Product>>> Update(long id, [FromBody] Product product)
         {
@@ -84,7 +80,13 @@ namespace WebAPI.Controllers
 
             // Güncellenebilir alanları ata
             existing.Name = product.Name;
-            existing.Slug = product.Slug;
+
+            // Slug değiştiyse benzersizleştir
+            if (existing.Slug != product.Slug)
+            {
+                existing.Slug = await _productService.GenerateUniqueSlugAsync(product.Slug);
+            }
+
             existing.Price = product.Price;
             existing.Stok = product.Stok;
             existing.CategoryId = product.CategoryId;
@@ -100,9 +102,8 @@ namespace WebAPI.Controllers
             });
         }
 
-        /// <summary>
-        /// Ürün sil (soft delete)
-        /// </summary>
+       
+        // Ürün sil 
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponseDto<Product>>> Delete(long id)
         {

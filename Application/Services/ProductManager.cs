@@ -4,6 +4,7 @@ using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entities;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Application.Services
@@ -36,6 +37,12 @@ namespace Application.Services
 
         public async Task AddAsync(Product product)
         {
+            // Slug üret
+            if (string.IsNullOrWhiteSpace(product.Slug))
+            {
+                product.Slug = await GenerateUniqueSlugAsync(product.Name);
+            }
+
             await _productRepository.AddAsync(product);
         }
 
@@ -57,11 +64,8 @@ namespace Application.Services
         // Gelişmiş arama/filtreleme/sıralama/sayfalama
         public async Task<ProductSearchResponseDto> SearchProductsAsync(ProductSearchRequestDto request)
         {
-            // Repository'den ürünleri ve toplam sayıyı alıyoruz
             var (products, totalCount) = await _productRepository.SearchProductsAsync(request);
 
-
-            // Entity -> DTO
             var items = products.Select(p => new ProductDto
             {
                 Id = p.Id,
@@ -79,6 +83,22 @@ namespace Application.Services
                 Items = items,
                 TotalCount = totalCount
             };
+        }
+
+        // --- Slug guard ---
+        public async Task<string> GenerateUniqueSlugAsync(string slug)
+        {
+            var baseSlug = slug.Trim().ToLower().Replace(" ", "-");
+            var uniqueSlug = baseSlug;
+            int counter = 1;
+
+            while (await _productRepository.SlugExistsAsync(uniqueSlug))
+            {
+                uniqueSlug = $"{baseSlug}-{counter}";
+                counter++;
+            }
+
+            return uniqueSlug;
         }
     }
 }
