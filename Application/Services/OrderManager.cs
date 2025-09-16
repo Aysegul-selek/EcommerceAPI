@@ -13,16 +13,19 @@ namespace Application.Services
         private readonly IProductRepository _productRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IDiscountService _discountService;
 
         public OrderManager(IOrderRepository orderRepository,
                             IProductRepository productRepository,
                             IUnitOfWork unitOfWork,
-                            IMapper mapper)
+                            IMapper mapper,
+                            IDiscountService discountService)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _discountService = discountService;
         }
 
         public async Task<ApiResponseDto<OrderDto>> CreateStubOrderAsync(CreateOrderDto request, long userId, string? idempotencyKey = null)
@@ -44,18 +47,17 @@ namespace Application.Services
                 foreach (var item in request.Items)
                 {
                     var product = await _productRepository.GetByIdAsync(item.ProductId);
-
                     if (product == null || !product.IsActive)
                         throw new Exception($"Ürün bulunamadı veya aktif değil. ProductId: {item.ProductId}");
 
                     if (product.Stok < item.Quantity)
                         throw new Exception($"Yetersiz stok. ProductId: {item.ProductId}");
 
-                    // stok düş
+                    // Stok düş
                     product.Stok -= item.Quantity;
                     await _productRepository.Update(product);
 
-                    // sipariş kalemi ekle
+                    // Sipariş kalemi ekle
                     var orderItem = new OrderItem
                     {
                         ProductId = product.Id,
@@ -67,11 +69,25 @@ namespace Application.Services
                     order.Items.Add(orderItem);
                 }
 
+                // Discount uygulama
+                if (request.Discount != null)
+                {
+                    if (request.Discount.Type == "Percentage")
+                    {
+                        total -= total * (request.Discount.Amount / 100m);
+                    }
+                    else if (request.Discount.Type == "Fixed")
+                    {
+                        total -= request.Discount.Amount;
+                    }
+
+                    if (total < 0) total = 0; // Negatif olmasın
+                }
+
                 order.Total = total;
 
                 await _orderRepository.AddOrderAsync(order);
                 await _orderRepository.SaveChangesAsync();
-
                 await _unitOfWork.CommitAsync();
 
                 var dto = _mapper.Map<OrderDto>(order);
@@ -86,7 +102,6 @@ namespace Application.Services
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-
                 return new ApiResponseDto<OrderDto>
                 {
                     Success = false,

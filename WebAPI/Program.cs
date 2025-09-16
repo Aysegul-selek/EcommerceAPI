@@ -1,16 +1,17 @@
-﻿using AspNetCoreRateLimit;
-using Application.Interfaces.Repositories;
+﻿using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using Application.Interfaces.Services.Application.Interfaces.Services;
 using Application.MappingProfiles;
 using Application.Services;
+using AspNetCoreRateLimit;
 using AutoMapper;
 using Infrastructure;
 using Infrastructure.DataBase;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using WebAPI.Middleware;
 using WebAPI.Extensions;
+using WebAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,10 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductManager>();
 builder.Services.AddScoped<IRoleService, RoleManager>();
+builder.Services.AddScoped<IDiscountStrategy, PercentageDiscountStrategy>();
+builder.Services.AddScoped<IDiscountStrategy, FixedDiscountStrategy>();
+builder.Services.AddScoped<IDiscountService, DiscountService>();
+
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
