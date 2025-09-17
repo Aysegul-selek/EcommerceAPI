@@ -16,8 +16,11 @@ namespace Application.Interfaces.Services
 
         //sayfalama + ürünler bir arada dönecek
         Task<ProductSearchResponseDto> SearchProductsAsync(ProductSearchRequestDto request);
+<<<<<<< HEAD
 
         // --- Slug guard ---
         Task<string> GenerateUniqueSlugAsync(string slug);
+=======
+>>>>>>> DevB-1
     }
 }

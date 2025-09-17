@@ -69,6 +69,7 @@ namespace Infrastructure.DataBase
                 .Property(p => p.Price)
                 .HasPrecision(18, 2);
 
+<<<<<<< HEAD
             modelBuilder.Entity<Order>()
                 .Property(o => o.Total)
                 .HasPrecision(18, 2);
@@ -100,6 +101,13 @@ namespace Infrastructure.DataBase
                 new Role { Id = 1, Name = "Admin", CreatedDate = new DateTime(2025, 1, 1), IsDeleted = false },
                 new Role { Id = 2, Name = "Customer", CreatedDate = new DateTime(2026, 1, 1), IsDeleted = false }
             );
+=======
+            modelBuilder.Entity<OrderItem>(builder =>
+            {
+                builder.Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
+            });
+
+>>>>>>> DevB-1
         }
 
         private static LambdaExpression GetIsDeletedRestriction(Type type)
@@ -111,3 +119,4 @@ namespace Infrastructure.DataBase
         }
     }
 }
+
