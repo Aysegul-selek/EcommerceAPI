@@ -46,6 +46,13 @@ namespace Infrastructure.Repositories
                                       || p.Sku.ToString().Contains(q));
             }
 
+            // Slug filtrele (tekil arama / slug guard için)
+            if (!string.IsNullOrWhiteSpace(request.Slug))
+            {
+                var s = request.Slug.ToLower();
+                query = query.Where(p => p.Slug.ToLower() == s);
+            }
+
             // Fiyat filtresi
             if (request.MinPrice.HasValue)
                 query = query.Where(p => p.Price >= request.MinPrice.Value);
@@ -78,6 +85,15 @@ namespace Infrastructure.Repositories
             var products = await query.Skip(skip).Take(request.PageSize).ToListAsync();
 
             return (products, totalCount);
+        }
+
+        // Slug kontrolü (guard için)
+        public async Task<bool> SlugExistsAsync(string slug, long? excludeProductId = null)
+        {
+            return await _context.Products
+                .AnyAsync(p => p.Slug == slug
+                               && !p.IsDeleted
+                               && (excludeProductId == null || p.Id != excludeProductId));
         }
     }
 }

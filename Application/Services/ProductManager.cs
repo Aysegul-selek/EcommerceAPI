@@ -4,6 +4,7 @@ using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entities;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Application.Services
@@ -36,11 +37,17 @@ namespace Application.Services
 
         public async Task AddAsync(Product product)
         {
+            // Slug guard
+            product.Slug = await GenerateUniqueSlugAsync(product.Name);
+
             await _productRepository.AddAsync(product);
         }
 
         public async Task UpdateAsync(Product product)
         {
+            // Slug guard
+            product.Slug = await GenerateUniqueSlugAsync(product.Name, product.Id);
+
             await _productRepository.Update(product);
         }
 
@@ -57,11 +64,8 @@ namespace Application.Services
         // Gelişmiş arama/filtreleme/sıralama/sayfalama
         public async Task<ProductSearchResponseDto> SearchProductsAsync(ProductSearchRequestDto request)
         {
-            // Repository'den ürünleri ve toplam sayıyı alıyoruz
             var (products, totalCount) = await _productRepository.SearchProductsAsync(request);
 
-
-            // Entity -> DTO
             var items = products.Select(p => new ProductDto
             {
                 Id = p.Id,
@@ -80,5 +84,29 @@ namespace Application.Services
                 TotalCount = totalCount
             };
         }
+
+        // Slug Guard Helper
+        private async Task<string> GenerateUniqueSlugAsync(string name, long? excludeId = null)
+        {
+            string baseSlug = name.Trim().ToLower().Replace(" ", "-");
+            string slug = baseSlug;
+
+            int counter = 1;
+            bool exists;
+
+            do
+            {
+                exists = await _productRepository.SlugExistsAsync(slug, excludeId);
+
+                if (exists)
+                {
+                    slug = $"{baseSlug}-{counter}";
+                    counter++;
+                }
+            } while (exists);
+
+            return slug;
+        }
+
     }
 }

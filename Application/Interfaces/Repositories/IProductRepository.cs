@@ -10,5 +10,8 @@ namespace Application.Interfaces.Repositories
 
         // Tuple dönüyoruz: (Filtrelenmiş ürünler, Toplam kayıt sayısı)
         Task<(IEnumerable<Product> Products, int TotalCount)> SearchProductsAsync(ProductSearchRequestDto request);
+
+        //Slug kontrolü
+        Task<bool> SlugExistsAsync(string slug, long? excludeProductId = null);
     }
 }

@@ -1,25 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Dtos.Product
 {
-    
     // Catalog arama için query parametrelerini taşıyan DTO.
     // Controller'da [FromQuery] ile bind edilmek için kullanılacak.
     public class ProductSearchRequestDto
     {
-      
-        // Metin araması: product.Name, product.Slug veya SKU (string olarak) içinde aranır.
+        // Metin araması: product.Name veya SKU içinde aranır.
         public string? Query { get; set; }
+
+        // Slug filtresi (slug guard için kontrol ve arama)
+        public string? Slug { get; set; }
 
         // Filtrelenecek kategori Id (isteğe bağlı). 
         public int? CategoryId { get; set; }
 
-        
         // Minimum fiyat (decimal). Nullable; verilmezse uygulanmaz.
         public decimal? MinPrice { get; set; }
 
@@ -30,7 +27,6 @@ namespace Application.Dtos.Product
         public bool? InStock { get; set; }
 
         // Sıralama alanı (örn: "price", "name", "createdDate", "stok").
-        // Repository tarafında bu alanın kabul edilen değerleri kontrol edilecek.
         public string? SortBy { get; set; }
 
         // "asc" veya "desc". Varsayılan "asc".
@@ -40,7 +36,7 @@ namespace Application.Dtos.Product
         [Range(1, int.MaxValue)]
         public int Page { get; set; } = 1;
 
-        // Sayfa büyüklüğü. Default 20. Max değeri validator'da sınırla (ör. 100).
+        // Sayfa büyüklüğü. Default 20. Max değeri validator'da sınırla (örn. 100).
         [Range(1, 200)]
         public int PageSize { get; set; } = 20;
     }
