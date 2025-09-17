@@ -2,6 +2,7 @@
 using Application.Interfaces.Services;
 using Application.Interfaces.Services.Application.Interfaces.Services;
 using Application.MappingProfiles;
+using Application.Pipelines.Order;
 using Application.Services;
 using AspNetCoreRateLimit;
 using AutoMapper;
@@ -64,7 +65,13 @@ builder.Services.AddScoped<IRoleService, RoleManager>();
 builder.Services.AddScoped<IDiscountStrategy, PercentageDiscountStrategy>();
 builder.Services.AddScoped<IDiscountStrategy, FixedDiscountStrategy>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
+// Pipeline adımları
+builder.Services.AddScoped<IOrderPipelineStep, StockCheckStep>();
+builder.Services.AddScoped<IOrderPipelineStep, TotalCalculationStep>();
+builder.Services.AddScoped<IOrderPipelineStep, DiscountStep>();
 
+// OrderFactory
+builder.Services.AddScoped<OrderFactory>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));

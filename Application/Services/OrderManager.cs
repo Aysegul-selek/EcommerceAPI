@@ -2,6 +2,7 @@
 using Application.Dtos.ResponseDto;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using Application.Pipelines.Order;
 using AutoMapper;
 using Domain.Entities;
 
@@ -9,23 +10,24 @@ namespace Application.Services
 {
     public class OrderManager : IOrderService
     {
+        private readonly OrderFactory _orderFactory;
         private readonly IOrderRepository _orderRepository;
         private readonly IProductRepository _productRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IDiscountService _discountService;
 
-        public OrderManager(IOrderRepository orderRepository,
-                            IProductRepository productRepository,
-                            IUnitOfWork unitOfWork,
-                            IMapper mapper,
-                            IDiscountService discountService)
+        public OrderManager(
+            IOrderRepository orderRepository,
+            IProductRepository productRepository,
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            OrderFactory orderFactory)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _discountService = discountService;
+            _orderFactory = orderFactory;
         }
 
         public async Task<ApiResponseDto<OrderDto>> CreateStubOrderAsync(CreateOrderDto request, long userId, string? idempotencyKey = null)
@@ -34,64 +36,38 @@ namespace Application.Services
 
             try
             {
-                var order = new Order
+                // Pipeline kullanarak Order entity oluştur
+                var order = await _orderFactory.CreateAsync(request, async productId =>
                 {
-                    OrderNo = "ORD-" + DateTime.UtcNow.Ticks,
-                    Status = "Pending",
-                    UserId = userId,
-                    CreatedDate = DateTime.UtcNow
-                };
-
-                decimal total = 0m;
-
-                foreach (var item in request.Items)
-                {
-                    var product = await _productRepository.GetByIdAsync(item.ProductId);
+                    // ProductRepository üzerinden ürün bilgilerini al
+                    var product = await _productRepository.GetByIdAsync(productId);
                     if (product == null || !product.IsActive)
-                        throw new Exception($"Ürün bulunamadı veya aktif değil. ProductId: {item.ProductId}");
+                        throw new Exception($"Ürün bulunamadı veya aktif değil. ProductId: {productId}");
 
-                    if (product.Stok < item.Quantity)
-                        throw new Exception($"Yetersiz stok. ProductId: {item.ProductId}");
+                    var itemQuantity = request.Items.First(i => i.ProductId == productId).Quantity;
+                    if (product.Stok < itemQuantity)
+                        throw new Exception($"Yetersiz stok. ProductId: {productId}");
 
                     // Stok düş
-                    product.Stok -= item.Quantity;
+                    product.Stok -= itemQuantity;
                     await _productRepository.Update(product);
 
-                    // Sipariş kalemi ekle
-                    var orderItem = new OrderItem
-                    {
-                        ProductId = product.Id,
-                        Quantity = item.Quantity,
-                        UnitPrice = product.Price
-                    };
+                    // Fiyatı döndür
+                    return product.Price;
+                });
 
-                    total += orderItem.Quantity * orderItem.UnitPrice;
-                    order.Items.Add(orderItem);
-                }
+                // Order bilgilerini set et
+                order.UserId = userId;
+                order.OrderNo = "ORD-" + DateTime.UtcNow.Ticks;
+                order.Status = "Pending";
+                order.CreatedDate = DateTime.UtcNow;
 
-                // Discount uygulama
-                if (request.Discount != null)
-                {
-                    if (request.Discount.Type == "Percentage")
-                    {
-                        total -= total * (request.Discount.Amount / 100m);
-                    }
-                    else if (request.Discount.Type == "Fixed")
-                    {
-                        total -= request.Discount.Amount;
-                    }
-
-                    if (total < 0) total = 0; // Negatif olmasın
-                }
-
-                order.Total = total;
-
+                // Order kaydet
                 await _orderRepository.AddOrderAsync(order);
                 await _orderRepository.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
 
                 var dto = _mapper.Map<OrderDto>(order);
-
                 return new ApiResponseDto<OrderDto>
                 {
                     Success = true,
@@ -114,17 +90,14 @@ namespace Application.Services
         {
             var order = await _orderRepository.FindByIdAsync(id);
             if (order == null)
-            {
                 return new ApiResponseDto<OrderDto?>
                 {
                     Success = false,
                     Message = "Sipariş bulunamadı",
                     ErrorCodes = "ORDER_NOT_FOUND"
                 };
-            }
 
             var dto = _mapper.Map<OrderDto>(order);
-
             return new ApiResponseDto<OrderDto?>
             {
                 Success = true,
@@ -135,7 +108,7 @@ namespace Application.Services
 
         public async Task<ApiResponseDto<List<OrderDto>>> GetOrdersAsync()
         {
-            var orders= await _orderRepository.GetAllAsync();
+            var orders = await _orderRepository.GetAllAsync();
             var dtos = _mapper.Map<List<OrderDto>>(orders);
             return new ApiResponseDto<List<OrderDto>>
             {
@@ -148,7 +121,7 @@ namespace Application.Services
         public async Task<ApiResponseDto<List<OrderDto>>> GetOrdersByUserAsync(long userId)
         {
             var orders = (await _orderRepository.GetAllAsync()).Where(o => o.UserId == userId).ToList();
-            var dtos=_mapper.Map<List<OrderDto>>(orders);
+            var dtos = _mapper.Map<List<OrderDto>>(orders);
             return new ApiResponseDto<List<OrderDto>>
             {
                 Success = true,
