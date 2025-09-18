@@ -18,6 +18,7 @@ namespace WebAPI.Controllers
             _productService = productService;
         }
 
+<<<<<<< HEAD
         // Ürün ekle
         [HttpPost]
         public async Task<ActionResult<ApiResponseDto<Product>>> AddProduct([FromBody] Product product)
@@ -25,6 +26,14 @@ namespace WebAPI.Controllers
             // Benzersiz slug üret
             product.Slug = await _productService.GenerateUniqueSlugAsync(product.Slug);
 
+=======
+        /// <summary>
+        /// Ürün ekle
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<ApiResponseDto<Product>>> AddProduct([FromBody] Product product)
+        {
+>>>>>>> DevB-1
             await _productService.AddAsync(product);
             return Ok(new ApiResponseDto<Product>
             {
@@ -34,7 +43,13 @@ namespace WebAPI.Controllers
             });
         }
 
+<<<<<<< HEAD
         // Tüm aktif ürünleri getir
+=======
+        /// <summary>
+        /// Tüm aktif ürünleri getir
+        /// </summary>
+>>>>>>> DevB-1
         [HttpGet]
         public async Task<ActionResult<ApiResponseDto<IEnumerable<Product>>>> GetAll()
         {
@@ -46,7 +61,13 @@ namespace WebAPI.Controllers
             });
         }
 
+<<<<<<< HEAD
         // Ürün detayı
+=======
+        /// <summary>
+        /// Ürün detayı
+        /// </summary>
+>>>>>>> DevB-1
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponseDto<Product>>> GetById(long id)
         {
@@ -65,8 +86,14 @@ namespace WebAPI.Controllers
             });
         }
 
+<<<<<<< HEAD
        
         // Ürün güncelle
+=======
+        /// <summary>
+        /// Ürün güncelle
+        /// </summary>
+>>>>>>> DevB-1
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResponseDto<Product>>> Update(long id, [FromBody] Product product)
         {
@@ -80,6 +107,7 @@ namespace WebAPI.Controllers
 
             // Güncellenebilir alanları ata
             existing.Name = product.Name;
+<<<<<<< HEAD
 
             // Slug değiştiyse benzersizleştir
             if (existing.Slug != product.Slug)
@@ -87,6 +115,9 @@ namespace WebAPI.Controllers
                 existing.Slug = await _productService.GenerateUniqueSlugAsync(product.Slug);
             }
 
+=======
+            existing.Slug = product.Slug;
+>>>>>>> DevB-1
             existing.Price = product.Price;
             existing.Stok = product.Stok;
             existing.CategoryId = product.CategoryId;
@@ -102,8 +133,14 @@ namespace WebAPI.Controllers
             });
         }
 
+<<<<<<< HEAD
        
         // Ürün sil 
+=======
+        /// <summary>
+        /// Ürün sil (soft delete)
+        /// </summary>
+>>>>>>> DevB-1
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponseDto<Product>>> Delete(long id)
         {

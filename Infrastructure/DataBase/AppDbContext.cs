@@ -70,6 +70,7 @@ namespace Infrastructure.DataBase
                 .Property(p => p.Price)
                 .HasPrecision(18, 2);
 
+<<<<<<< HEAD
             modelBuilder.Entity<Order>()
                 .Property(o => o.Total)
                 .HasPrecision(18, 2);
@@ -101,12 +102,6 @@ namespace Infrastructure.DataBase
                 new Role { Id = 1, Name = "Admin", CreatedDate = new DateTime(2025, 1, 1), IsDeleted = false },
                 new Role { Id = 2, Name = "Customer", CreatedDate = new DateTime(2026, 1, 1), IsDeleted = false }
             );
-            modelBuilder.Entity<IdempotencyRequest>(entity =>
-            {
-                entity.HasKey(i => i.Id);
-                entity.HasIndex(i => i.Key).IsUnique(); // aynı key tekrar olmasın
-                entity.Property(i => i.ResponseData).IsRequired();
-            });
         }
 
         private static LambdaExpression GetIsDeletedRestriction(Type type)
@@ -118,3 +113,4 @@ namespace Infrastructure.DataBase
         }
     }
 }
+

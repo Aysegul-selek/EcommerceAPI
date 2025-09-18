@@ -37,17 +37,28 @@ namespace Application.Services
 
         public async Task AddAsync(Product product)
         {
+<<<<<<< HEAD
             // Slug üret
             if (string.IsNullOrWhiteSpace(product.Slug))
             {
                 product.Slug = await GenerateUniqueSlugAsync(product.Name);
             }
+=======
+            // Slug guard
+            product.Slug = await GenerateUniqueSlugAsync(product.Name);
+>>>>>>> DevB-1
 
             await _productRepository.AddAsync(product);
         }
 
         public async Task UpdateAsync(Product product)
         {
+<<<<<<< HEAD
+=======
+            // Slug guard
+            product.Slug = await GenerateUniqueSlugAsync(product.Name, product.Id);
+
+>>>>>>> DevB-1
             await _productRepository.Update(product);
         }
 
@@ -85,6 +96,7 @@ namespace Application.Services
             };
         }
 
+<<<<<<< HEAD
         // --- Slug guard ---
         public async Task<string> GenerateUniqueSlugAsync(string slug)
         {
@@ -100,5 +112,30 @@ namespace Application.Services
 
             return uniqueSlug;
         }
+=======
+        // Slug Guard Helper
+        private async Task<string> GenerateUniqueSlugAsync(string name, long? excludeId = null)
+        {
+            string baseSlug = name.Trim().ToLower().Replace(" ", "-");
+            string slug = baseSlug;
+
+            int counter = 1;
+            bool exists;
+
+            do
+            {
+                exists = await _productRepository.SlugExistsAsync(slug, excludeId);
+
+                if (exists)
+                {
+                    slug = $"{baseSlug}-{counter}";
+                    counter++;
+                }
+            } while (exists);
+
+            return slug;
+        }
+
+>>>>>>> DevB-1
     }
 }
