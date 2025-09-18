@@ -65,6 +65,8 @@ builder.Services.AddScoped<IRoleService, RoleManager>();
 builder.Services.AddScoped<IDiscountStrategy, PercentageDiscountStrategy>();
 builder.Services.AddScoped<IDiscountStrategy, FixedDiscountStrategy>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
+builder.Services.AddScoped<IIdempotencyRequestRepository, IdempotencyRequestRepository>();
+builder.Services.AddScoped<IdempotencyService>();
 // Pipeline adımları
 builder.Services.AddScoped<IOrderPipelineStep, StockCheckStep>();
 builder.Services.AddScoped<IOrderPipelineStep, TotalCalculationStep>();

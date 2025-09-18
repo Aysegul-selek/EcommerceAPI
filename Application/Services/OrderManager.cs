@@ -13,6 +13,7 @@ namespace Application.Services
         private readonly OrderFactory _orderFactory;
         private readonly IOrderRepository _orderRepository;
         private readonly IProductRepository _productRepository;
+        private readonly IdempotencyService _idempotencyService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
@@ -21,25 +22,35 @@ namespace Application.Services
             IProductRepository productRepository,
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            OrderFactory orderFactory)
+            OrderFactory orderFactory,
+            IdempotencyService idempotencyService)
         {
             _orderRepository = orderRepository;
             _productRepository = productRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _orderFactory = orderFactory;
+            _idempotencyService = idempotencyService;
         }
 
         public async Task<ApiResponseDto<OrderDto>> CreateStubOrderAsync(CreateOrderDto request, long userId, string? idempotencyKey = null)
         {
+            if (!string.IsNullOrEmpty(idempotencyKey))
+            {
+                // Idempotency kontrolü
+                var cached = await _idempotencyService.GetCachedResponseAsync<ApiResponseDto<OrderDto>>(idempotencyKey);
+                if (cached != null)
+                {
+                    return cached; // Önceki response’u döndür
+                }
+            }
+
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-                // Pipeline kullanarak Order entity oluştur
                 var order = await _orderFactory.CreateAsync(request, async productId =>
                 {
-                    // ProductRepository üzerinden ürün bilgilerini al
                     var product = await _productRepository.GetByIdAsync(productId);
                     if (product == null || !product.IsActive)
                         throw new Exception($"Ürün bulunamadı veya aktif değil. ProductId: {productId}");
@@ -48,32 +59,34 @@ namespace Application.Services
                     if (product.Stok < itemQuantity)
                         throw new Exception($"Yetersiz stok. ProductId: {productId}");
 
-                    // Stok düş
                     product.Stok -= itemQuantity;
                     await _productRepository.Update(product);
 
-                    // Fiyatı döndür
                     return product.Price;
                 });
 
-                // Order bilgilerini set et
                 order.UserId = userId;
                 order.OrderNo = "ORD-" + DateTime.UtcNow.Ticks;
                 order.Status = "Pending";
                 order.CreatedDate = DateTime.UtcNow;
 
-                // Order kaydet
                 await _orderRepository.AddOrderAsync(order);
                 await _orderRepository.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
 
                 var dto = _mapper.Map<OrderDto>(order);
-                return new ApiResponseDto<OrderDto>
+                var response = new ApiResponseDto<OrderDto>
                 {
                     Success = true,
                     Message = "Sipariş başarıyla oluşturuldu",
                     Data = dto
                 };
+
+                // Idempotency response kaydet
+                if (!string.IsNullOrEmpty(idempotencyKey))
+                    await _idempotencyService.SaveResponseAsync(idempotencyKey, response);
+
+                return response;
             }
             catch (Exception ex)
             {

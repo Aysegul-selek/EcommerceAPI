@@ -25,6 +25,7 @@ namespace Infrastructure.DataBase
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<IdempotencyRequest> IdempotencyRequests { get; set; }
 
         public override Task<int> SaveChangesAsync(System.Threading.CancellationToken cancellationToken = default)
         {
@@ -100,6 +101,12 @@ namespace Infrastructure.DataBase
                 new Role { Id = 1, Name = "Admin", CreatedDate = new DateTime(2025, 1, 1), IsDeleted = false },
                 new Role { Id = 2, Name = "Customer", CreatedDate = new DateTime(2026, 1, 1), IsDeleted = false }
             );
+            modelBuilder.Entity<IdempotencyRequest>(entity =>
+            {
+                entity.HasKey(i => i.Id);
+                entity.HasIndex(i => i.Key).IsUnique(); // aynı key tekrar olmasın
+                entity.Property(i => i.ResponseData).IsRequired();
+            });
         }
 
         private static LambdaExpression GetIsDeletedRestriction(Type type)

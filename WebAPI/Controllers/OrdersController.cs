@@ -21,13 +21,16 @@ namespace WebAPI.Controllers
         [HttpPost("create/{userId}")]
         public async Task<ActionResult> CreateStubOrder(long userId, [FromBody] CreateOrderDto request)
         {
-            var result = await _orderService.CreateStubOrderAsync(request, userId);
+            var idempotencyKey = Request.Headers["Idempotency-Key"].FirstOrDefault();
+
+            var result = await _orderService.CreateStubOrderAsync(request, userId, idempotencyKey);
 
             if (!result.Success)
                 return BadRequest(result);
 
             return Ok(result);
         }
+
 
         /// <summary>
         /// Sipariş detayını getir
