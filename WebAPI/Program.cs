@@ -16,6 +16,8 @@ using Microsoft.EntityFrameworkCore;
 
 using WebAPI.Extensions;
 using WebAPI.Middleware;
+using Serilog;
+using Infrastructure.HealthChecks;
 
 
 var builder = WebApplication.CreateBuilder(args);
