@@ -70,7 +70,7 @@ namespace Infrastructure.DataBase
                 .Property(p => p.Price)
                 .HasPrecision(18, 2);
 
-<<<<<<< HEAD
+
             modelBuilder.Entity<Order>()
                 .Property(o => o.Total)
                 .HasPrecision(18, 2);

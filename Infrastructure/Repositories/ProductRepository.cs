@@ -1,11 +1,13 @@
-﻿using Domain.Entities;
+﻿using Application.Dtos.Product;
+using Application.Dtos.Product.Application.Dtos.Product;
 using Application.Interfaces.Repositories;
+using Domain.Entities;
 using Infrastructure.DataBase;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.Dtos.Product;
 
 namespace Infrastructure.Repositories
 {
@@ -22,7 +24,6 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync(p => p.Sku == sku && !p.IsDeleted && p.IsActive);
         }
 
-<<<<<<< HEAD
         public async Task<Product?> GetBySlugAsync(string slug)
         {
             return await _context.Products
@@ -30,8 +31,6 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync(p => p.Slug == slug && !p.IsDeleted);
         }
 
-=======
->>>>>>> DevB-1
         public async Task<IEnumerable<Product>> GetAllActiveAsync()
         {
             return await _context.Products
@@ -56,16 +55,13 @@ namespace Infrastructure.Repositories
                                       || p.Sku.ToString().Contains(q));
             }
 
-<<<<<<< HEAD
-=======
-            // Slug filtrele (tekil arama / slug guard için)
+            // Slug filtrele
             if (!string.IsNullOrWhiteSpace(request.Slug))
             {
                 var s = request.Slug.ToLower();
                 query = query.Where(p => p.Slug.ToLower() == s);
             }
 
->>>>>>> DevB-1
             // Fiyat filtresi
             if (request.MinPrice.HasValue)
                 query = query.Where(p => p.Price >= request.MinPrice.Value);
@@ -100,21 +96,14 @@ namespace Infrastructure.Repositories
             return (products, totalCount);
         }
 
-<<<<<<< HEAD
-        public async Task<bool> SlugExistsAsync(string slug)
-        {
-            return await _context.Products
-                .AsNoTracking()
-                .AnyAsync(p => p.Slug == slug && !p.IsDeleted);
-=======
-        // Slug kontrolü (guard için)
+        // Slug kontrolü (tek metod, overloadsuz)
         public async Task<bool> SlugExistsAsync(string slug, long? excludeProductId = null)
         {
             return await _context.Products
+                .AsNoTracking()
                 .AnyAsync(p => p.Slug == slug
                                && !p.IsDeleted
                                && (excludeProductId == null || p.Id != excludeProductId));
->>>>>>> DevB-1
         }
     }
 }

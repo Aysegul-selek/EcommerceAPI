@@ -10,11 +10,9 @@ namespace Application.Dtos.Order
     public class CreateOrderDto
     {
         public List<CreateOrderItemDto> Items { get; set; } = new();
-<<<<<<< HEAD
+
         public DiscountDto? Discount { get; set; } 
 
-=======
-        
->>>>>>> DevB-1
+
     }
 }

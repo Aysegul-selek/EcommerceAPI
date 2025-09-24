@@ -1,27 +1,22 @@
 ﻿using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
-<<<<<<< HEAD
 using Application.Interfaces.Services.Application.Interfaces.Services;
 using Application.MappingProfiles;
 using Application.Pipelines.Order;
 using Application.Services;
 using AspNetCoreRateLimit;
-=======
 using Application.MappingProfiles;
 using Application.Services;
->>>>>>> DevB-1
 using AutoMapper;
 using Infrastructure;
 using Infrastructure.DataBase;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-<<<<<<< HEAD
+
 using WebAPI.Extensions;
 using WebAPI.Middleware;
-=======
 
->>>>>>> DevB-1
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,7 +69,7 @@ builder.Services.AddScoped<IAuthService, AuthManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductManager>();
-<<<<<<< HEAD
+
 builder.Services.AddScoped<IRoleService, RoleManager>();
 builder.Services.AddScoped<IDiscountStrategy, PercentageDiscountStrategy>();
 builder.Services.AddScoped<IDiscountStrategy, FixedDiscountStrategy>();
@@ -85,9 +80,7 @@ builder.Services.AddScoped<IdempotencyService>();
 builder.Services.AddScoped<IOrderPipelineStep, StockCheckStep>();
 builder.Services.AddScoped<IOrderPipelineStep, TotalCalculationStep>();
 builder.Services.AddScoped<IOrderPipelineStep, DiscountStep>();
-=======
 
->>>>>>> DevB-1
 
 // OrderFactory
 builder.Services.AddScoped<OrderFactory>();
