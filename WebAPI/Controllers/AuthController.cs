@@ -23,7 +23,7 @@ namespace WebAPI.Controllers
         {
 
 
-           await Task.Delay(3000);// deneme amaçlı ekledim
+           
             var response = await _authService.LoginAsync(request);
 
             if (!response.Success) return BadRequest(response);

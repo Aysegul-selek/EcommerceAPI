@@ -20,27 +20,42 @@ using WebAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Serilog yapılandırması
+builder.Host.UseSerilog((ctx, lc) => lc
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext() // CorrelationId, Middleware içinden LogContext’e push ediliyor
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] [CorrelationId:{CorrelationId}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File("Logs/log-.txt",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] [CorrelationId:{CorrelationId}] {Message:lj}{NewLine}{Exception}")
+);
+
+// HealthChecks servisini ekleme
+builder.Services.AddHealthChecks()
+    .AddCheck<MsSqlHealthCheck>("mssql-check");
+
+builder.Services.AddSingleton(new MsSqlHealthCheck(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // cors ayarları
 builder.Services.AddCorsPolicy();
 
 builder.Services.AddMemoryCache();
 
-// appsettings.json dosyasından ayarları okur ve servis konteynerine ekler
+// Rate limiting
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimiting"));
-
-// IHttpContextAccessor hizmetini ekler, rate limiting için gereklidir
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-// Limit bilgilerini bellek içi (in-memory) depolamak için gerekli hizmeti ekler.
 builder.Services.AddInMemoryRateLimiting();
-
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
+// Controllers
 builder.Services.AddControllers();
 
 // Cache için
@@ -88,14 +103,17 @@ builder.Services.AddScoped<OrderFactory>();
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// JWT ayarları
+// JWT
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
 app.UseCors();
 
-app.UseCustomMiddlewares(TimeSpan.FromSeconds(1));
+app.UseMiddleware<CorrelationIdMiddleware>();
+
+
+app.UseCustomMiddlewares(TimeSpan.FromSeconds(20));
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -110,5 +128,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");// healtyCheck endpointi
 
 app.Run();
