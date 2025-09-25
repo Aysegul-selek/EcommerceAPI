@@ -18,6 +18,7 @@ using WebAPI.Extensions;
 using WebAPI.Middleware;
 using Serilog;
 using Infrastructure.HealthChecks;
+using Domain.Aws_Settings;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// AWS S3 Servisi
+builder.Services.Configure<AwsSetting>(builder.Configuration.GetSection("AWS"));
+builder.Services.AddScoped<S3Service>();
+
 
 // Serilog yapılandırması
 builder.Host.UseSerilog((ctx, lc) => lc
@@ -76,6 +81,7 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IAwsSettingsRepository , AwsSettingsRepository>();
 
 
 // Services
@@ -86,6 +92,7 @@ builder.Services.AddScoped<IAuthService, AuthManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductManager>();
+builder.Services.AddScoped<IAwsSettingsService, AwsSettingsManager>();
 
 builder.Services.AddScoped<IRoleService, RoleManager>();
 builder.Services.AddScoped<IDiscountStrategy, PercentageDiscountStrategy>();

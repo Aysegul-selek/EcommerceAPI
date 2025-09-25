@@ -10,7 +10,7 @@ namespace Application.Interfaces.Services
     {
         Task<Product?> GetByIdAsync(long id);
         Task<Product?> GetBySkuAsync(int sku);
-        Task<IEnumerable<Product>> GetAllActiveAsync();
+        Task<IEnumerable<ProductReadDto>> GetAllActiveAsync();
         Task AddAsync(Product product);
         Task UpdateAsync(Product product);
         Task DeleteAsync(long id);
@@ -20,6 +20,7 @@ namespace Application.Interfaces.Services
 
         // --- Slug guard ---
         Task<string> GenerateUniqueSlugAsync(string slug);
+        Task<ProductReadDto> GetProductByIdsAsync(long id);
 
     }
 }

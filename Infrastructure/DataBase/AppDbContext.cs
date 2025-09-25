@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Domain.Aws_Settings;
 
 namespace Infrastructure.DataBase
 {
@@ -26,6 +27,9 @@ namespace Infrastructure.DataBase
         public DbSet<Role> Roles { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<IdempotencyRequest> IdempotencyRequests { get; set; }
+        public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<AwsSetting> AwsSettings { get; set; }
+
 
         public override Task<int> SaveChangesAsync(System.Threading.CancellationToken cancellationToken = default)
         {
@@ -96,6 +100,12 @@ namespace Infrastructure.DataBase
                 .HasOne(ur => ur.Role)
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId);
+
+            modelBuilder.Entity<ProductImage>()
+                .HasOne(pi => pi.Product)
+                .WithMany(p => p.Images)
+                .HasForeignKey(pi => pi.ProductId);
+
 
             // Role seed data
             modelBuilder.Entity<Role>().HasData(

@@ -14,6 +14,7 @@ namespace Application.Interfaces.Repositories
 
         //Slug kontrolü
         Task<bool> SlugExistsAsync(string slug, long? excludeProductId = null);
+        Task<Product> GetProductByIdAsync(long id);
 
     }
 }

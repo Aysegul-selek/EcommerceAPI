@@ -35,6 +35,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.Products
                 .AsNoTracking()
+                .Include(p => p.Images)
                 .Where(p => !p.IsDeleted && p.IsActive)
                 .ToListAsync();
         }
@@ -104,6 +105,14 @@ namespace Infrastructure.Repositories
                 .AnyAsync(p => p.Slug == slug
                                && !p.IsDeleted
                                && (excludeProductId == null || p.Id != excludeProductId));
+        }
+
+        public async Task<Product?> GetProductByIdAsync(long id)
+        {
+
+            return await _context.Products
+                .Include(p => p.Images) 
+                .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
         }
     }
 }

@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Application.Dtos.Product
 {
-    public class Product : BaseEntity
+    public  class ProductReadDto : BaseEntity
     {
         public int Sku { get; set; }
         public string Name { get; set; }
@@ -16,7 +17,7 @@ namespace Domain.Entities
         public int CategoryId { get; set; }
         public bool IsActive { get; set; }
 
-        public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
-
+       
+        public List<ProductImageDto> Images { get; set; } = new List<ProductImageDto>();
     }
 }
