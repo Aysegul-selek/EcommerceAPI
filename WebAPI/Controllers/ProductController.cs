@@ -78,12 +78,9 @@ namespace WebAPI.Controllers
                 ProductId = productId,
                 ImageUrl = imageUrl
             };
-            //product.Images.Add(productImage);
-
-            //// Ürünü güncelle
-            //await _productService.UpdateAsync(product);
+           
             await _productImagesService.AddProductImage(productImage); 
-            await _productService.UpdateAsync(product);
+      
 
             return Ok(new ApiResponseDto<string>
             {
