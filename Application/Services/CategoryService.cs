@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Dtos.Category;
+using Application.Dtos.Pagination;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using AutoMapper;
@@ -43,13 +44,15 @@ namespace Application.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<CategoryDto>> GetAllAsync()
+        public async Task<PagedResponse<CategoryDto>> GetAllAsync(PaginationFilter filter)
         {
             if (!_cache.TryGetValue(AllCategoriesCacheKey, out IEnumerable<CategoryDto> categoriesDto))
             {
                 _logger.LogInformation("CACHE MISS: {key}", AllCategoriesCacheKey);
+
                 var categories = await _categoryRepository.GetAllAsync();
                 categoriesDto = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+
                 _cache.Set(AllCategoriesCacheKey, categoriesDto, _cacheOptions);
             }
             else
@@ -57,8 +60,16 @@ namespace Application.Services
                 _logger.LogInformation("CACHE HIT: {key}", AllCategoriesCacheKey);
             }
 
-            return categoriesDto;
+            // Memory üzerinde pagination
+            var totalRecords = categoriesDto.Count();
+            var pagedData = categoriesDto
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToList();
+
+            return new PagedResponse<CategoryDto>(pagedData, totalRecords, filter.PageNumber, filter.PageSize);
         }
+
 
         public async Task<IEnumerable<CategoryDto>> GetActiveCategoriesAsync()
         {
@@ -180,5 +191,7 @@ namespace Application.Services
             _cache.Remove(CategoryTreeCacheKey);
             _cache.Remove($"Category_{affectedCategoryId}");
         }
+
+       
     }
 }

@@ -4,14 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Application.Dtos.Category;
+using Application.Dtos.Pagination;
 using Domain.Entities;
 
 namespace Application.Interfaces.Services
 {
     public interface ICategoryService
     {
+
         // Tum kategorileri getirir
-        Task<IEnumerable<CategoryDto>> GetAllAsync();
+        Task<PagedResponse<CategoryDto>> GetAllAsync(PaginationFilter filter);
 
         // Aktif kategorileri getirir
         Task<IEnumerable<CategoryDto>> GetActiveCategoriesAsync();

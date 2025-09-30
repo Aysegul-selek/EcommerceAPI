@@ -1,4 +1,5 @@
 ﻿using Application.Dtos.Category;
+using Application.Dtos.Pagination;
 using Application.Dtos.ResponseDto;
 using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +19,11 @@ namespace WebAPI.Controllers
 
         // GET /api/v1/categories
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
         {
-            var categories = await _categoryService.GetAllAsync();
+            var categories = await _categoryService.GetAllAsync(filter);
 
-            var response = new ApiResponseDto<IEnumerable<CategoryDto>>
+            var response = new ApiResponseDto<PagedResponse<CategoryDto>>
             {
                 Success = true,
                 Message = "Categories fetched successfully",
@@ -31,6 +32,7 @@ namespace WebAPI.Controllers
 
             return Ok(response);
         }
+
 
         // GET /api/v1/categories/active
         [HttpGet("active")]

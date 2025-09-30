@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Domain.Entities;
 using Infrastructure.DataBase;
 using Microsoft.EntityFrameworkCore;
+using Application.Dtos.Pagination;
 
 
 namespace Infrastructure.Repositories
@@ -39,6 +40,20 @@ namespace Infrastructure.Repositories
             return await _context.Set<Category>()
                                  .AsNoTracking()
                                  .FirstOrDefaultAsync(c => !c.IsDeleted && c.Id == id);
+        }
+
+        public async Task<PagedResponse<Category>> GetAllAsync(PaginationFilter filter)
+        {
+            var query = _context.Categories.AsQueryable();
+
+            var totalRecords = await query.CountAsync();
+
+            var data = await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return new PagedResponse<Category>(data, totalRecords, filter.PageNumber, filter.PageSize);
         }
     }
 }
