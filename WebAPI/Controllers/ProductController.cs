@@ -110,20 +110,7 @@ namespace WebAPI.Controllers
         }
 
         // GET: api/products/search
-        [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] ProductSearchRequestDto request)
-        {
-            // Service çağrısı
-            var result = await _productService.SearchProductsAsync(request);
-
-            // Response DTO ile dön
-            return Ok(new ApiResponseDto<ProductSearchResponseDto>
-            {
-                Success = true,
-                Message = "Ürünler listelendi",
-                Data = result
-            });
-        }
+    
 
         /// <summary>
         /// Ürün detayı

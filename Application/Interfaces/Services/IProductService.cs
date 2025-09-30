@@ -1,4 +1,5 @@
-﻿using Application.Dtos.Product;
+﻿using Application.Dtos.Pagination;
+using Application.Dtos.Product;
 using Application.Dtos.Product;
 using Domain.Entities;
 using System.Collections.Generic;
