@@ -1,4 +1,5 @@
 ﻿using Application.Dtos.Order;
+using Application.Dtos.Pagination;
 using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,9 +50,9 @@ namespace WebAPI.Controllers
         /// Tüm siparişleri listele
         /// </summary>
         [HttpGet("list")]
-        public async Task<ActionResult> GetOrders()
+        public async Task<IActionResult> GetOrders([FromQuery] PaginationFilter filter)
         {
-            var result = await _orderService.GetOrdersAsync();
+            var result = await _orderService.GetOrdersAsync(filter);
             return Ok(result);
         }
 

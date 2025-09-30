@@ -9,6 +9,7 @@ namespace Application.Interfaces.Repositories
 {
     public interface IOrderRepository:IRepositoryBase<Order>
     {
+        IQueryable<Order> GetAllQueryable();
         Task<Order?> FindByIdAsync(long id);
         Task AddOrderAsync(Order order);
         Task SaveChangesAsync();

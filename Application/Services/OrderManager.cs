@@ -1,4 +1,5 @@
 ﻿using Application.Dtos.Order;
+using Application.Dtos.Pagination;
 using Application.Dtos.ResponseDto;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
@@ -98,6 +99,8 @@ namespace Application.Services
             }
         }
 
+       
+
         public async Task<ApiResponseDto<OrderDto?>> GetByIdAsync(long id)
         {
             var order = await _orderRepository.FindByIdAsync(id);
@@ -121,15 +124,29 @@ namespace Application.Services
             };
         }
 
-        public async Task<ApiResponseDto<List<OrderDto>>> GetOrdersAsync()
+        public async Task<ApiResponseDto<PagedResponse<OrderDto>>> GetOrdersAsync(PaginationFilter filter)
         {
             var orders = await _orderRepository.GetAllAsync();
             var dtos = _mapper.Map<List<OrderDto>>(orders);
-            return new ApiResponseDto<List<OrderDto>>
+
+            var totalRecords = dtos.Count();
+            var pagedData = dtos
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToList();
+
+            var pagedResponse = new PagedResponse<OrderDto>(
+                pagedData,
+                filter.PageNumber,
+                filter.PageSize,
+                totalRecords
+            );
+
+            return new ApiResponseDto<PagedResponse<OrderDto>>
             {
                 Success = true,
                 Message = "Siparişler listelendi",
-                Data = dtos
+                Data = pagedResponse
             };
         }
 
