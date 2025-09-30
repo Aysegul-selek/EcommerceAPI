@@ -1,4 +1,5 @@
 ﻿using Application.Dtos.Product;
+using Application.Dtos.Product;
 using Application.Dtos.ResponseDto;
 using Application.Interfaces.Services;
 using Domain.Entities;
@@ -181,5 +182,16 @@ namespace WebAPI.Controllers
                 Message = "Ürün silindi"
             });
         }
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] ProductSearchRequestDto request)
+        {
+            // default değerleri güvene alıyoruz
+            if (request.Page <= 0) request.Page = 1;
+            if (request.PageSize <= 0) request.PageSize = 10;
+
+            var result = await _productService.SearchProductsAsync(request);
+            return Ok(result);
+        }
+
     }
 }

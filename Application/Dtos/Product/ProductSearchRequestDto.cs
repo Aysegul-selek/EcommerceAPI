@@ -6,9 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Dtos.Product
-{
-    
 
 
 namespace Application.Dtos.Product
@@ -56,6 +53,6 @@ namespace Application.Dtos.Product
         public int PageSize { get; set; } = 20;
     }
 }
-    }
+    
 
 

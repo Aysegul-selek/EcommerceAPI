@@ -1,5 +1,5 @@
 ﻿using Application.Dtos.Product;
-using Application.Dtos.Product.Application.Dtos.Product;
+using Application.Dtos.Product;
 using Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;

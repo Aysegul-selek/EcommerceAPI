@@ -1,5 +1,5 @@
 ﻿using Application.Dtos.Product;
-using Application.Dtos.Product.Application.Dtos.Product;
+using Application.Dtos.Product;
 using Application.Interfaces.Repositories;
 using Domain.Entities;
 using Infrastructure.DataBase;
