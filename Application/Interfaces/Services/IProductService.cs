@@ -22,5 +22,8 @@ namespace Application.Interfaces.Services
         Task<string> GenerateUniqueSlugAsync(string slug);
         Task<ProductReadDto> GetProductByIdsAsync(long id);
 
+        //Tüm ürünleri pagination ile getirir
+        Task<PagedResponse<ProductDto>> GetAllPagedAsync(int pageNumber, int pageSize);
+
     }
 }

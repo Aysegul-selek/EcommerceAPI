@@ -114,5 +114,24 @@ namespace Infrastructure.Repositories
                 .Include(p => p.Images) 
                 .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
         }
+
+        // Tüm ürünleri pagination ile listele
+        public async Task<(IEnumerable<Product> Products, int TotalCount)> GetAllPagedAsync(int pageNumber, int pageSize)
+        {
+            var query = _context.Products
+                .AsNoTracking()
+                .Where(p => !p.IsDeleted && p.IsActive)
+                .OrderBy(p => p.Id); // default sıralama
+
+            var totalCount = await query.CountAsync();
+
+            var products = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Include(p => p.Images) // varsa görselleri dahil et
+                .ToListAsync();
+
+            return (products, totalCount);
+        }
     }
 }
