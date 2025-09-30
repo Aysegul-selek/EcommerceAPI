@@ -35,6 +35,7 @@ namespace Infrastructure.Repositories
         {
             return await _context.Products
                 .AsNoTracking()
+                .Take(10)
                 .Include(p => p.Images)
                 .Where(p => !p.IsDeleted && p.IsActive)
                 .ToListAsync();
