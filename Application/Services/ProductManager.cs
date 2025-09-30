@@ -1,4 +1,5 @@
-﻿using Application.Dtos.Product;
+﻿using Application.Dtos.Pagination;
+using Application.Dtos.Product;
 using Application.Dtos.Product.Application.Dtos.Product;
 using Application.Exceptions;
 using Application.Interfaces.Repositories;
@@ -185,6 +186,19 @@ namespace Application.Services
                 }).ToList()
             };
             return productReadDto;
+        }
+
+        // GetAll Paged
+        public async Task<PagedResponse<ProductDto>> GetAllPagedAsync(int pageNumber, int pageSize)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var (products, totalCount) = await _productRepository.GetAllPagedAsync(pageNumber, pageSize);
+
+            var productDtos = _mapper.Map<List<ProductDto>>(products);
+
+            return new PagedResponse<ProductDto>(productDtos, totalCount, pageNumber, pageSize);
         }
     }
 }

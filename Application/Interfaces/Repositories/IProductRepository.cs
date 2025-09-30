@@ -16,5 +16,8 @@ namespace Application.Interfaces.Repositories
         Task<bool> SlugExistsAsync(string slug, long? excludeProductId = null);
         Task<Product> GetProductByIdAsync(long id);
 
+        //Pagination
+        Task<(IEnumerable<Product> Products, int TotalCount)> GetAllPagedAsync(int pageNumber, int pageSize);
+
     }
 }

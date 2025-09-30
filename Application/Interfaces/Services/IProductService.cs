@@ -1,4 +1,5 @@
-﻿using Application.Dtos.Product;
+﻿using Application.Dtos.Pagination;
+using Application.Dtos.Product;
 using Application.Dtos.Product.Application.Dtos.Product;
 using Domain.Entities;
 using System.Collections.Generic;
@@ -21,6 +22,9 @@ namespace Application.Interfaces.Services
         // --- Slug guard ---
         Task<string> GenerateUniqueSlugAsync(string slug);
         Task<ProductReadDto> GetProductByIdsAsync(long id);
+
+        //Tüm ürünleri pagination ile getirir
+        Task<PagedResponse<ProductDto>> GetAllPagedAsync(int pageNumber, int pageSize);
 
     }
 }

@@ -1,4 +1,6 @@
-﻿using Application.Dtos.Product;
+﻿using Application.Dtos.Pagination;
+using Application.Dtos.Product;
+using Application.Dtos.Product.Application.Dtos.Product;
 using Application.Dtos.ResponseDto;
 using Application.Interfaces.Services;
 using Domain.Entities;
@@ -96,16 +98,32 @@ namespace WebAPI.Controllers
         /// </summary>
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var products = await _productService.GetAllActiveAsync();
-            return Ok(new ApiResponseDto<IEnumerable<ProductReadDto>>
+            var result = await _productService.GetAllPagedAsync(pageNumber, pageSize);
+            return Ok(new ApiResponseDto<PagedResponse<ProductDto>>
             {
                 Success = true,
-                Data = products
+                Message = "Ürünler listelendi",
+                Data = result
             });
         }
 
+        // GET: api/products/search
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] ProductSearchRequestDto request)
+        {
+            // Service çağrısı
+            var result = await _productService.SearchProductsAsync(request);
+
+            // Response DTO ile dön
+            return Ok(new ApiResponseDto<ProductSearchResponseDto>
+            {
+                Success = true,
+                Message = "Ürünler listelendi",
+                Data = result
+            });
+        }
 
         /// <summary>
         /// Ürün detayı
