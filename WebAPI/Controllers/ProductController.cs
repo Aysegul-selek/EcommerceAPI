@@ -5,6 +5,7 @@ using Application.Dtos.ResponseDto;
 using Application.Interfaces.Services;
 using Domain.Entities;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace WebAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/v1/products")]
     public class ProductController : ControllerBase

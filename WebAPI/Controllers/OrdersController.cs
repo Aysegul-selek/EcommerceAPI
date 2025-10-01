@@ -1,10 +1,12 @@
 ﻿using Application.Dtos.Order;
 using Application.Dtos.Pagination;
 using Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/v1/orders")]
     public class OrdersController : ControllerBase

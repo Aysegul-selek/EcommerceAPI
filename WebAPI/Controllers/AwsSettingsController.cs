@@ -1,9 +1,11 @@
 ﻿using Application.Dtos.aws;
 using Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/v1/aws")]
     [ApiController]
     public class AwsSettingsController : ControllerBase

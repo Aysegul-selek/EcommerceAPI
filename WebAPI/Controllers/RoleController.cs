@@ -32,6 +32,7 @@ namespace WebAPI.Controllers
             return Ok(roles);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("{userId}/roles/{roleId}")]
         public async Task<IActionResult> AssignRole(long userId, long roleId)
         {
