@@ -2,10 +2,12 @@
 using Application.Dtos.Product;
 using Application.Interfaces.Services;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/v1/catalog")]
     public class CatalogController : ControllerBase
