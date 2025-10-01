@@ -82,6 +82,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAwsSettingsRepository , AwsSettingsRepository>();
+builder.Services.AddScoped<IProductImagesRepository, ProductImageRepository>();
 
 
 // Services
@@ -93,6 +94,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductManager>();
 builder.Services.AddScoped<IAwsSettingsService, AwsSettingsManager>();
+builder.Services.AddScoped<IProductImagesService, ProductImageManager>();
 
 builder.Services.AddScoped<IRoleService, RoleManager>();
 builder.Services.AddScoped<IDiscountStrategy, PercentageDiscountStrategy>();

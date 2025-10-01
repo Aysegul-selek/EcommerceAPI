@@ -17,12 +17,14 @@ namespace WebAPI.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IProductImagesService _productImagesService;
         private readonly S3Service _s3Service;
 
-        public ProductController(IProductService productService, S3Service s3Service)
+        public ProductController(IProductService productService, S3Service s3Service, IProductImagesService productImagesService)
         {
             _productService = productService;
             _s3Service = s3Service;
+            _productImagesService = productImagesService;
         }
         /// <summary>
         /// Ürün ekle
@@ -78,10 +80,9 @@ namespace WebAPI.Controllers
                 ProductId = productId,
                 ImageUrl = imageUrl
             };
-            product.Images.Add(productImage);
-
-            // Ürünü güncelle
-            await _productService.UpdateAsync(product);
+           
+            await _productImagesService.AddProductImage(productImage); 
+      
 
             return Ok(new ApiResponseDto<string>
             {
