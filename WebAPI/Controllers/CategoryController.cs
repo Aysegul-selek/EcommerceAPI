@@ -2,10 +2,12 @@
 using Application.Dtos.Pagination;
 using Application.Dtos.ResponseDto;
 using Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
 {
+    [Authorize]
     [Route("api/v1/categories")]
     [ApiController]
     public class CategoryController : ControllerBase
