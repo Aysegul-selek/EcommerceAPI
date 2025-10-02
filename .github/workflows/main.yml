@@ -26,7 +26,7 @@ jobs:
       run: dotnet build ./EcommerceAPI.sln --configuration Release 
 
     - name: Publish
-      run: dotnet publish ./WebAPI.csproj --configuration Release --no-build --output './publish'
+      run: dotnet publish ./WebAPI/WebAPI.csproj --configuration Release --no-build --output './publish'
     - name: Deployment
       uses: azure/webapps-deploy@v2
       with:
