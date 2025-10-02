@@ -1,42 +1,38 @@
 ﻿using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
-using Application.Interfaces.Services.Application.Interfaces.Services;
 using Application.MappingProfiles;
 using Application.Pipelines.Order;
 using Application.Services;
 using AspNetCoreRateLimit;
-using Application.MappingProfiles;
-using Application.Services;
 using AutoMapper;
 using Infrastructure;
 using Infrastructure.DataBase;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-
 using WebAPI.Extensions;
 using WebAPI.Middleware;
 using Serilog;
 using Infrastructure.HealthChecks;
 using Domain.Aws_Settings;
-
+using Application.Interfaces.Services.Application.Interfaces.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+// Swagger & API Explorer
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 // AWS S3 Servisi
 builder.Services.Configure<AwsSetting>(builder.Configuration.GetSection("AWS"));
 builder.Services.AddScoped<S3Service>();
-
 
 // Serilog yapılandırması
 builder.Host.UseSerilog((ctx, lc) => lc
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
     .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
-    .Enrich.FromLogContext() // CorrelationId, Middleware içinden LogContext’e push ediliyor
+    .Enrich.FromLogContext()
     .WriteTo.Console(outputTemplate:
         "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] [CorrelationId:{CorrelationId}] {Message:lj}{NewLine}{Exception}")
     .WriteTo.File("Logs/log-.txt",
@@ -44,15 +40,15 @@ builder.Host.UseSerilog((ctx, lc) => lc
         outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] [CorrelationId:{CorrelationId}] {Message:lj}{NewLine}{Exception}")
 );
 
-// HealthChecks servisini ekleme
+// HealthChecks
 builder.Services.AddHealthChecks()
     .AddCheck<MsSqlHealthCheck>("mssql-check");
-
 builder.Services.AddSingleton(new MsSqlHealthCheck(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// cors ayarları
+// CORS
 builder.Services.AddCorsPolicy();
 
+// Memory Cache
 builder.Services.AddMemoryCache();
 
 // Rate limiting
@@ -65,12 +61,6 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 // Controllers
 builder.Services.AddControllers();
 
-// Cache için
-builder.Services.AddMemoryCache();
-
-// Cache için
-builder.Services.AddMemoryCache();
-
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -81,9 +71,8 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-builder.Services.AddScoped<IAwsSettingsRepository , AwsSettingsRepository>();
+builder.Services.AddScoped<IAwsSettingsRepository, AwsSettingsRepository>();
 builder.Services.AddScoped<IProductImagesRepository, ProductImageRepository>();
-
 
 // Services
 builder.Services.AddScoped<IUserService, UserManager>();
@@ -95,18 +84,17 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductManager>();
 builder.Services.AddScoped<IAwsSettingsService, AwsSettingsManager>();
 builder.Services.AddScoped<IProductImagesService, ProductImageManager>();
-
 builder.Services.AddScoped<IRoleService, RoleManager>();
 builder.Services.AddScoped<IDiscountStrategy, PercentageDiscountStrategy>();
 builder.Services.AddScoped<IDiscountStrategy, FixedDiscountStrategy>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
 builder.Services.AddScoped<IIdempotencyRequestRepository, IdempotencyRequestRepository>();
 builder.Services.AddScoped<IdempotencyService>();
-// Pipeline adımları
+
+// Pipeline steps
 builder.Services.AddScoped<IOrderPipelineStep, StockCheckStep>();
 builder.Services.AddScoped<IOrderPipelineStep, TotalCalculationStep>();
 builder.Services.AddScoped<IOrderPipelineStep, DiscountStep>();
-
 
 // OrderFactory
 builder.Services.AddScoped<OrderFactory>();
@@ -119,19 +107,19 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
+// Middleware
 app.UseCors();
-
 app.UseMiddleware<CorrelationIdMiddleware>();
-
-
 app.UseCustomMiddlewares(TimeSpan.FromSeconds(20));
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
+// Swagger — Prod ve Dev ortamda aktif
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    c.RoutePrefix = string.Empty; // Ana sayfada Swagger açmak için
+});
 
 app.UseIpRateLimiting();
 
@@ -139,7 +127,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.MapHealthChecks("/health");// healtyCheck endpointi
+app.MapHealthChecks("/health");
 
 app.Run();
