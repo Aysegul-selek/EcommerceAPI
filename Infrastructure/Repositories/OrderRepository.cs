@@ -31,8 +31,12 @@ namespace Infrastructure.Repositories
 
         public IQueryable<Order> GetAllQueryable()
         {
-            return _context.Orders.AsQueryable();
+            return _context.Orders
+                .Include(o => o.Items)   // Items’ları da yükle
+                .AsNoTracking()
+                .Where(o => !o.IsDeleted);
         }
+
 
         public async Task SaveChangesAsync()
         {
