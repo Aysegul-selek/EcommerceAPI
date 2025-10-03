@@ -126,8 +126,10 @@ namespace Application.Services
 
         public async Task<ApiResponseDto<PagedResponse<OrderDto>>> GetOrdersAsync(PaginationFilter filter)
         {
-            var orders = await _orderRepository.GetAllAsync();
+            var orders = await _orderRepository.GetAllWithItemsAsync();
             var dtos = _mapper.Map<List<OrderDto>>(orders);
+
+
 
             var totalRecords = dtos.Count();
             var pagedData = dtos

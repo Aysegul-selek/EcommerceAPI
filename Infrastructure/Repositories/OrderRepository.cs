@@ -29,9 +29,13 @@ namespace Infrastructure.Repositories
                .FirstOrDefaultAsync(o => o.Id == id && !o.IsDeleted);
         }
 
-        public IQueryable<Order> GetAllQueryable()
+        public async Task<List<Order>> GetAllWithItemsAsync()
         {
-            return _context.Orders.AsQueryable();
+            return await _context.Orders
+                .Include(o => o.Items)
+                .Where(o => !o.IsDeleted)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task SaveChangesAsync()
