@@ -29,14 +29,14 @@ namespace Infrastructure.Repositories
                .FirstOrDefaultAsync(o => o.Id == id && !o.IsDeleted);
         }
 
-        public IQueryable<Order> GetAllQueryable()
+        public async Task<List<Order>> GetAllWithItemsAsync()
         {
-            return _context.Orders
-                .Include(o => o.Items)   // Items’ları da yükle
+            return await _context.Orders
+                .Include(o => o.Items)
+                .Where(o => !o.IsDeleted)
                 .AsNoTracking()
-                .Where(o => !o.IsDeleted);
+                .ToListAsync();
         }
-
 
         public async Task SaveChangesAsync()
         {
