@@ -10,8 +10,8 @@ namespace Application.Interfaces.Services
     {
         
         Task<ApiResponseDto<object>> AddUser(CreateUserDto user);
-        Task<ApiResponseDto<User>> GetUserById(int userId);
-        Task<ApiResponseDto<IEnumerable<User>>> GetAllUsers();
+        Task<ApiResponseDto<UserReadDto>> GetUserById(int userId);
+        Task<ApiResponseDto<IEnumerable<UserReadDto>>> GetAllUsers();
         Task<ApiResponseDto<object>> UpdateUser(UpdateUserDto user, int id);
         Task<ApiResponseDto<object>> DeleteUser(long id);
         //Task<ApiResponseDto<object>> AssignRoleToUser(long userId, long roleId);
