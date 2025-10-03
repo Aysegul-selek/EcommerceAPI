@@ -12,7 +12,7 @@ namespace Application.Interfaces.Services
         Task<Product?> GetByIdAsync(long id);
         Task<Product?> GetBySkuAsync(int sku);
         Task<IEnumerable<ProductReadDto>> GetAllActiveAsync();
-        Task AddAsync(Product product);
+        Task AddAsync(CreateProductDto product);
         Task UpdateAsync(Product product);
         Task DeleteAsync(long id);
 
