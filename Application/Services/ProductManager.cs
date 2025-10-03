@@ -1,13 +1,11 @@
 ﻿using Application.Dtos.Pagination;
 using Application.Dtos.Product;
-using Application.Dtos.Product;
 using Application.Exceptions;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using AutoMapper;
 using Domain.Entities;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Application.Services
@@ -35,58 +33,35 @@ namespace Application.Services
 
         public async Task<IEnumerable<ProductReadDto>> GetAllActiveAsync()
         {
-
             var products = await _productRepository.GetAllActiveAsync();
-            var productDtos = products.Select(p => new ProductReadDto
-            {
-                Id = p.Id,
-                Sku = p.Sku,
-                Name = p.Name,
-                Slug = p.Slug,
-                Price = p.Price,
-                Stok = p.Stok,
-                CategoryId = p.CategoryId,
-                IsActive = p.IsActive,
-                CreatedDate = p.CreatedDate,
-                UpdatedDate = p.UpdatedDate,
-                IsDeleted = p.IsDeleted,
-                CreateUser = p.CreateUser,
-                UpUser = p.UpUser,
-                // Resim listesini de ayrıca ProductImageDto'ya eşle
-                Images = p.Images.Select(i => new ProductImageDto
-                {
-                    Id = i.Id,
-                    ImageUrl = i.ImageUrl
-                }).ToList()
-            }).ToList();
-            return productDtos;
+            return _mapper.Map<IEnumerable<ProductReadDto>>(products);
         }
 
         public async Task AddAsync(CreateProductDto productDto)
         {
-
-            // Slug üret
+            // Slug üret (eğer boşsa)
             if (string.IsNullOrWhiteSpace(productDto.Slug))
             {
                 productDto.Slug = await GenerateUniqueSlugAsync(productDto.Name);
             }
 
-            // Slug guard
-            productDto.Slug = await GenerateUniqueSlugAsync(productDto.Name);
             var product = _mapper.Map<Product>(productDto);
-
-
-
             await _productRepository.AddAsync(product);
         }
 
-        public async Task UpdateAsync(Product product)
+        public async Task UpdateAsync(UpdateProductDto dto)
         {
+            var existing = await _productRepository.GetByIdAsync(dto.Id);
+            if (existing == null)
+                throw new NotFoundException($"{dto.Id} li product bulunamadı");
 
-            // Slug guard
-            product.Slug = await GenerateUniqueSlugAsync(product.Name, product.Id);
+            // Slug'ı güncelle ve benzersizleştir
+            existing.Slug = await GenerateUniqueSlugAsync(dto.Slug, existing.Id);
 
-            await _productRepository.Update(product);
+            // Diğer alanları AutoMapper ile güncelle
+            _mapper.Map(dto, existing);
+
+            await _productRepository.Update(existing);
         }
 
         public async Task DeleteAsync(long id)
@@ -99,22 +74,11 @@ namespace Application.Services
             }
         }
 
-        // Gelişmiş arama/filtreleme/sıralama/sayfalama
         public async Task<ProductSearchResponseDto> SearchProductsAsync(ProductSearchRequestDto request)
         {
             var (products, totalCount) = await _productRepository.SearchProductsAsync(request);
 
-            var items = products.Select(p => new ProductDto
-            {
-                Id = p.Id,
-                Sku = p.Sku,
-                Name = p.Name,
-                Slug = p.Slug,
-                Price = p.Price,
-                Stok = p.Stok,
-                CategoryId = p.CategoryId,
-                IsActive = p.IsActive
-            });
+            var items = _mapper.Map<IEnumerable<ProductDto>>(products);
 
             return new ProductSearchResponseDto
             {
@@ -123,6 +87,25 @@ namespace Application.Services
             };
         }
 
+        public async Task<ProductReadDto> GetProductByIdsAsync(long id)
+        {
+            var product = await _productRepository.GetProductByIdAsync(id);
+            if (product == null)
+                throw new NotFoundException($"{id} li product bulunamadı");
+
+            return _mapper.Map<ProductReadDto>(product);
+        }
+
+        public async Task<PagedResponse<ProductDto>> GetAllPagedAsync(int pageNumber, int pageSize)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            var (products, totalCount) = await _productRepository.GetAllPagedAsync(pageNumber, pageSize);
+            var productDtos = _mapper.Map<List<ProductDto>>(products);
+
+            return new PagedResponse<ProductDto>(productDtos, totalCount, pageNumber, pageSize);
+        }
 
         // --- Slug guard ---
         public async Task<string> GenerateUniqueSlugAsync(string slug)
@@ -140,12 +123,10 @@ namespace Application.Services
             return uniqueSlug;
         }
 
-        // Slug Guard Helper
         private async Task<string> GenerateUniqueSlugAsync(string name, long? excludeId = null)
         {
             string baseSlug = name.Trim().ToLower().Replace(" ", "-");
             string slug = baseSlug;
-
             int counter = 1;
             bool exists;
 
@@ -161,46 +142,6 @@ namespace Application.Services
             } while (exists);
 
             return slug;
-        }
-
-        public async Task<ProductReadDto> GetProductByIdsAsync(long id)
-        {
-
-            var product = await _productRepository.GetProductByIdAsync(id);
-            if (product == null)
-            {
-                throw new NotFoundException($"{id} li product bulunamadı");
-            }
-            var productReadDto = new ProductReadDto
-            {
-                Id = product.Id,
-                Sku = product.Sku,
-                Name = product.Name,
-                Slug = product.Slug,
-                Price = product.Price,
-                Stok = product.Stok,
-                CategoryId = product.CategoryId,
-                IsActive = product.IsActive,
-                Images = product.Images.Select(img => new ProductImageDto
-                {
-                    Id = img.Id,
-                    ImageUrl = img.ImageUrl
-                }).ToList()
-            };
-            return productReadDto;
-        }
-
-        // GetAll Paged
-        public async Task<PagedResponse<ProductDto>> GetAllPagedAsync(int pageNumber, int pageSize)
-        {
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
-
-            var (products, totalCount) = await _productRepository.GetAllPagedAsync(pageNumber, pageSize);
-
-            var productDtos = _mapper.Map<List<ProductDto>>(products);
-
-            return new PagedResponse<ProductDto>(productDtos, totalCount, pageNumber, pageSize);
         }
     }
 }

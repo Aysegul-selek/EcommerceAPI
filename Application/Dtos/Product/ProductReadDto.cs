@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Application.Dtos.Product
 {
-    public  class ProductReadDto : BaseEntity
+    public  class ProductReadDto 
     {
+        public int Id { get; set; }
         public int Sku { get; set; }
         public string Name { get; set; }
         public string Slug { get; set; }

@@ -37,6 +37,9 @@ namespace Application.MappingProfiles
             CreateMap<Product, ProductDto>().ReverseMap();
             CreateMap<Product, CreateProductDto>().ReverseMap();
             CreateMap<Product, UpdateProductDto>().ReverseMap();
+            // ProductReadDto mappingi: BaseEntity alanları dönmesin
+            CreateMap<Product, ProductReadDto>()
+                .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images));
 
             CreateMap<User, UserReadDto>()
             .ForMember(dest => dest.Roles, opt => opt.MapFrom(src =>
@@ -47,6 +50,9 @@ namespace Application.MappingProfiles
             CreateMap<Role, RoleReadDto>()
             .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.UserRoles.Count));
 
+            CreateMap<ProductImage, ProductImageDto>().ReverseMap();
+            CreateMap<Product, ProductReadDto>()
+                .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images));
 
         }
     }

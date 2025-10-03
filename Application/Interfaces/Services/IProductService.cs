@@ -13,7 +13,8 @@ namespace Application.Interfaces.Services
         Task<Product?> GetBySkuAsync(int sku);
         Task<IEnumerable<ProductReadDto>> GetAllActiveAsync();
         Task AddAsync(CreateProductDto product);
-        Task UpdateAsync(Product product);
+        Task UpdateAsync(UpdateProductDto dto);
+
         Task DeleteAsync(long id);
 
         //sayfalama + ürünler bir arada dönecek

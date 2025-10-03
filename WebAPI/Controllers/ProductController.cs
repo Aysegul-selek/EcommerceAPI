@@ -138,39 +138,27 @@ namespace WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponseDto<Product>>> Update(long id, [FromBody] Product product)
+        public async Task<ActionResult<ApiResponseDto<ProductReadDto>>> Update(long id, [FromBody] UpdateProductDto dto)
         {
             var existing = await _productService.GetByIdAsync(id);
             if (existing == null)
-                return NotFound(new ApiResponseDto<Product>
+                return NotFound(new ApiResponseDto<ProductReadDto>
                 {
                     Success = false,
                     Message = "Ürün bulunamadı"
                 });
 
-            // Güncellenebilir alanları ata
-            existing.Name = product.Name;
+            // DTO tabanlı update
+            dto.Id = id; // güvenlik için id set et
+            await _productService.UpdateAsync(dto);
 
+            var updatedProduct = await _productService.GetProductByIdsAsync(id);
 
-            // Slug değiştiyse benzersizleştir
-            if (existing.Slug != product.Slug)
-            {
-                existing.Slug = await _productService.GenerateUniqueSlugAsync(product.Slug);
-            }
-
-            existing.Slug = product.Slug;
-            existing.Price = product.Price;
-            existing.Stok = product.Stok;
-            existing.CategoryId = product.CategoryId;
-            existing.IsActive = product.IsActive;
-
-            await _productService.UpdateAsync(existing);
-
-            return Ok(new ApiResponseDto<Product>
+            return Ok(new ApiResponseDto<ProductReadDto>
             {
                 Success = true,
                 Message = "Ürün güncellendi",
-                Data = existing
+                Data = updatedProduct
             });
         }
 
