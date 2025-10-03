@@ -2,6 +2,8 @@
 using Application.Dtos.Order;
 using Application.Dtos.OrderItem;
 using Application.Dtos.Product;
+using Application.Dtos.RoleDto;
+using Application.Dtos.UserDto;
 using AutoMapper;
 using Domain.Entities;
 using System;
@@ -35,6 +37,17 @@ namespace Application.MappingProfiles
             CreateMap<Product, ProductDto>().ReverseMap();
             CreateMap<Product, CreateProductDto>().ReverseMap();
             CreateMap<Product, UpdateProductDto>().ReverseMap();
+
+            CreateMap<User, UserReadDto>()
+            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src =>
+            src.UserRoles.Select(ur => ur.Role)));
+
+            CreateMap<Role, RoleReadDto>();
+
+            CreateMap<Role, RoleReadDto>()
+            .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.UserRoles.Count));
+
+
         }
     }
 }
