@@ -21,15 +21,20 @@ namespace Application.MappingProfiles
             CreateMap<Category, CreateCategoryDto>().ReverseMap();
             CreateMap<Category, UpdateCategoryDto>().ReverseMap();
 
-            //Order
+            // Order -> OrderDto
             CreateMap<Order, OrderDto>()
-               .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.Total))
-               .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-               .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items));
+                .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.Total))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items));
 
-            //OrderItem
-            CreateMap<OrderItem, OrderItemDto>()
-                .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => ""));
+            // OrderItem -> OrderItemDto
+            CreateMap<OrderItem, OrderItemDto>();
+
+            // CreateOrderDto -> Order
+            CreateMap<CreateOrderDto, Order>();
+
+            // CreateOrderItemDto -> OrderItem
+            CreateMap<CreateOrderItemDto, OrderItem>();
 
             // Product mappingleri
             CreateMap<Product, ProductDto>().ReverseMap();

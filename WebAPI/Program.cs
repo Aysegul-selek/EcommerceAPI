@@ -29,14 +29,15 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
-    // JWT ayarı
+    // JWT ayarı (Bearer otomatik eklenecek)
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "JWT Token giriniz. Örn: Bearer {token}",
+        Description = "Sadece token giriniz. (Başına 'Bearer' yazmaya gerek yok)",
         Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
     });
 
     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
@@ -151,8 +152,8 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-    c.RoutePrefix = string.Empty; // Ana sayfada Swagger açmak için
-    //c.RoutePrefix = "swagger";
+    //c.RoutePrefix = string.Empty; // Ana sayfada Swagger açmak için
+    c.RoutePrefix = "swagger";
 });
 
 app.UseIpRateLimiting();
