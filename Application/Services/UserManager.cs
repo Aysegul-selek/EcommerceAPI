@@ -3,6 +3,7 @@ using Application.Dtos.UserDto;
 using Application.Exceptions;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using AutoMapper;
 using Domain.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -13,12 +14,14 @@ namespace Application.Services
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
         private readonly ILogger<UserManager> _logger;
+        private readonly IMapper _mapper;
 
-        public UserManager(IUserRepository userRepository, IRoleRepository roleRepository, ILogger<UserManager> logger)
+        public UserManager(IUserRepository userRepository, IRoleRepository roleRepository, ILogger<UserManager> logger, IMapper mapper = null)
         {
             _userRepository = userRepository;
             _roleRepository = roleRepository;
             _logger = logger;
+            _mapper = mapper;
         }
 
         public async Task<ApiResponseDto<object>> AddUser(CreateUserDto user)
@@ -93,7 +96,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<ApiResponseDto<User>> GetUserById(int userId)
+        public async Task<ApiResponseDto<UserReadDto>> GetUserById(int userId)
         {
             try
             {
@@ -105,13 +108,13 @@ namespace Application.Services
                     _logger.LogWarning("NotFoundException: Kullanıcı bulunamadı. UserId: {UserId}", userId);
                     throw new NotFoundException("Kullanıcı bulunamadı");
                 }
-
+                var userDto = _mapper.Map<UserReadDto>(user);
                 _logger.LogInformation("Kullanıcı getirildi. UserId: {UserId}", userId);
-                return new ApiResponseDto<User>
+                return new ApiResponseDto<UserReadDto>
                 {
                     Success = true,
                     Message = "Kullanıcı getirildi",
-                    Data = user
+                    Data = userDto
                 };
             }
             catch (Exception ex)
@@ -121,20 +124,22 @@ namespace Application.Services
             }
         }
 
-        public async Task<ApiResponseDto<IEnumerable<User>>> GetAllUsers()
+        public async Task<ApiResponseDto<IEnumerable<UserReadDto>>> GetAllUsers()
         {
             try
             {
                 _logger.LogInformation("GetAllUsers endpoint çağrıldı.");
 
-                var users = await _userRepository.GetAllAsync();
+                var users = await _userRepository.GettAllUser();
 
                 _logger.LogInformation("Kullanıcı listesi getirildi. Toplam kullanıcı: {Count}", users.Count());
-                return new ApiResponseDto<IEnumerable<User>>
+                var userDtos = _mapper.Map<List<UserReadDto>>(users);
+
+                return new ApiResponseDto<IEnumerable<UserReadDto>>
                 {
                     Success = true,
                     Message = "Kullanıcı listesi getirildi",
-                    Data = users
+                    Data = userDtos
                 };
             }
             catch (Exception ex)

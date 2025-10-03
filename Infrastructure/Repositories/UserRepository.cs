@@ -59,5 +59,16 @@ namespace Infrastructure.Repositories
                 .Where(ur => ur.RoleId == roleId)
                 .ToListAsync();
         }
+
+        public async Task<List<User>> GettAllUser()
+        {
+
+            var users = await _context.Users
+            .Where(u => !u.IsDeleted)
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+            .ToListAsync();
+            return users;
+        }
     }
 }
