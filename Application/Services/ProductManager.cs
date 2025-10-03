@@ -47,11 +47,7 @@ namespace Application.Services
                 Stok = p.Stok,
                 CategoryId = p.CategoryId,
                 IsActive = p.IsActive,
-                CreatedDate = p.CreatedDate,
-                UpdatedDate = p.UpdatedDate,
-                IsDeleted = p.IsDeleted,
-                CreateUser = p.CreateUser,
-                UpUser = p.UpUser,
+               
                 // Resim listesini de ayrıca ProductImageDto'ya eşle
                 Images = p.Images.Select(i => new ProductImageDto
                 {

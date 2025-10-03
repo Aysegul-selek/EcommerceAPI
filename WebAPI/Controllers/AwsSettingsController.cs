@@ -26,6 +26,7 @@ namespace WebAPI.Controllers
             return Ok(response);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("AddSettings")]
         public async Task<IActionResult> SaveOrUpdateSettings([FromBody] AwsSettingsDto dto)
         {
