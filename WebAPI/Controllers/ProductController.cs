@@ -33,13 +33,13 @@ namespace WebAPI.Controllers
         /// </summary>
         // Ürün ekle
         [HttpPost]
-        public async Task<ActionResult<ApiResponseDto<Product>>> AddProduct([FromBody] Product product)
+        public async Task<ActionResult<ApiResponseDto<Product>>> AddProduct([FromBody] CreateProductDto product)
         {
             // Benzersiz slug üret
             product.Slug = await _productService.GenerateUniqueSlugAsync(product.Slug);
 
             await _productService.AddAsync(product);
-            return Ok(new ApiResponseDto<Product>
+            return Ok(new ApiResponseDto<CreateProductDto>
             {
                 Success = true,
                 Message = "Ürün başarıyla eklendi",

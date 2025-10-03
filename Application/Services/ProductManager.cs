@@ -62,17 +62,19 @@ namespace Application.Services
             return productDtos;
         }
 
-        public async Task AddAsync(Product product)
+        public async Task AddAsync(CreateProductDto productDto)
         {
 
             // Slug üret
-            if (string.IsNullOrWhiteSpace(product.Slug))
+            if (string.IsNullOrWhiteSpace(productDto.Slug))
             {
-                product.Slug = await GenerateUniqueSlugAsync(product.Name);
+                productDto.Slug = await GenerateUniqueSlugAsync(productDto.Name);
             }
 
             // Slug guard
-            product.Slug = await GenerateUniqueSlugAsync(product.Name);
+            productDto.Slug = await GenerateUniqueSlugAsync(productDto.Name);
+            var product = _mapper.Map<Product>(productDto);
+
 
 
             await _productRepository.AddAsync(product);
