@@ -181,6 +181,10 @@ namespace Application.Services
                 Stok = product.Stok,
                 CategoryId = product.CategoryId,
                 IsActive = product.IsActive,
+                CreatedDate = product.CreatedDate,
+                UpdatedDate = product.UpdatedDate,
+                IsDeleted = product.IsDeleted,
+                CreateUser = product.CreateUser,
                 Images = product.Images.Select(img => new ProductImageDto
                 {
                     Id = img.Id,
