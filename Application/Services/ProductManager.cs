@@ -7,7 +7,6 @@ using AutoMapper;
 using Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace Application.Services
 {
@@ -40,6 +39,7 @@ namespace Application.Services
 
         public async Task AddAsync(CreateProductDto productDto)
         {
+            // Slug üret (eğer boşsa)
             if (string.IsNullOrWhiteSpace(productDto.Slug))
             {
                 productDto.Slug = await GenerateUniqueSlugAsync(productDto.Name);
@@ -55,8 +55,12 @@ namespace Application.Services
             if (existing == null)
                 throw new NotFoundException($"{dto.Id} li product bulunamadı");
 
+            // Slug'ı güncelle ve benzersizleştir
             existing.Slug = await GenerateUniqueSlugAsync(dto.Slug, existing.Id);
+
+            // Diğer alanları AutoMapper ile güncelle
             _mapper.Map(dto, existing);
+
             await _productRepository.Update(existing);
         }
 
@@ -73,6 +77,7 @@ namespace Application.Services
         public async Task<ProductSearchResponseDto> SearchProductsAsync(ProductSearchRequestDto request)
         {
             var (products, totalCount) = await _productRepository.SearchProductsAsync(request);
+
             var items = _mapper.Map<IEnumerable<ProductDto>>(products);
 
             return new ProductSearchResponseDto
@@ -102,6 +107,7 @@ namespace Application.Services
             return new PagedResponse<ProductDto>(productDtos, totalCount, pageNumber, pageSize);
         }
 
+        // --- Slug guard ---
         public async Task<string> GenerateUniqueSlugAsync(string slug)
         {
             var baseSlug = slug.Trim().ToLower().Replace(" ", "-");
