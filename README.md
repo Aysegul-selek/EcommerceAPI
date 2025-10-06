@@ -29,8 +29,4 @@
 * AWS & Azure üzerinde CI/CD desteği
 * Test edilebilir, temiz mimari
 
----
 
----
-
-> 🚀 Modern .NET mimarisi, güçlü logging ve bulut dağıtımıyla gerçek projelere temel olacak güçlü bir API yapısı.
