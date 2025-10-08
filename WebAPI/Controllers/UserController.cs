@@ -33,7 +33,7 @@ namespace WebAPI.Controllers
             return Ok(response);
             
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDto user, [FromRoute] int id)
         {
@@ -75,7 +75,7 @@ namespace WebAPI.Controllers
             _logger.LogInformation("Kullanıcı başarıyla bulundu: {UserId}", id);
             return Ok(response);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteUser([FromRoute] int id)
         {
